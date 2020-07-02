@@ -1,0 +1,70 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// Recheck position follow 3D Model
+/// </summary>
+public class UIModelBlind : MonoBehaviour {
+    public Vector3 vecMax = new Vector3(99999, 99999, 0);
+
+    public Transform modelTransform;
+
+    public RectTransform screenUITransform;
+
+    public Canvas canvas;
+
+    public float offsetX = 0;
+    public float offsetY = 0;
+
+    private bool _isReset = false;
+
+    // Use this for initialization
+    void Start () {
+        ResetPos();
+    }
+
+    public bool firstCalc = false;
+    float _lastX = 0;
+    float _lastY = 0;
+	// Update is called once per frame
+	void Update () {
+        if (modelTransform != null && screenUITransform != null && canvas != null)
+        {
+            float scaleFactor = canvas.scaleFactor;
+            Vector2 screentPosition = Camera.main.WorldToScreenPoint(modelTransform.position);
+            screentPosition.x = screentPosition.x - Screen.width / 2 + offsetX * scaleFactor;
+            screentPosition.y = screentPosition.y - Screen.height / 2 + offsetY * scaleFactor;
+            if (!firstCalc && !_isReset)
+            {
+                if (_lastX == screentPosition.x && _lastY == screentPosition.y)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                firstCalc = false;
+                _isReset = false;
+            }
+            
+            Vector2 convertPos = new Vector2(screentPosition.x / scaleFactor, screentPosition.y / scaleFactor);
+            screenUITransform.anchoredPosition = convertPos;
+            _lastX = screentPosition.x;
+            _lastY = screentPosition.y;
+        }
+        else
+        {
+            ResetPos();
+        }
+    }
+
+    public void ResetPos()
+    {
+        if (screenUITransform != null)
+        {
+            screenUITransform.localPosition = vecMax;
+        }
+        _isReset = true;
+    }
+}

@@ -1,0 +1,33 @@
+﻿/**************************
+/*
+/* author:xxxAuthor
+/*
+ **************************/
+using UnityEngine;
+using GYLib.GYFrame;
+using System;
+
+public class TemplateProcessor : Processor
+{
+
+    protected override Type[] listenModuleEvents()
+    {
+        return new Type[] {
+			typeof(MEvent_GameSave),
+            };
+    }
+
+    protected override void receivedModuleEvent(ModuleEvent evt)
+    {
+        string name = evt.ToString();
+        switch (name)
+        {
+            case "MEvent_GameSave":
+                break;
+        }
+    }
+
+    private void HandleGameSave()
+    {
+    }
+}

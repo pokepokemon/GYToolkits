@@ -1,0 +1,15 @@
+/**************************
+/*
+/* author:xxxAuthor
+/*
+ **************************/
+using UnityEngine;
+using GYLib.GYFrame;
+
+public class TemplateModule : Module
+{
+    protected override void listProcessors()
+    {
+        RegistProcessor<TemplateProcessor>();
+    }
+}
