@@ -17,26 +17,25 @@ public class ADManager : MonoSingleton<ADManager>
 
     private bool _testMode = false;
 #if UNITY_ANDROID
-    private const string GAME_ID = "3590403";
+    private const string GAME_ID = "caa9b9ed";
 #elif UNITY_IPHONE
-    private const string GAME_ID = "3590402";
+    private const string GAME_ID = "ca25958d";
 #else
     private const string GAME_ID = "";
 #endif
 
     public void Init()
     {
-        if (Advertisement.isSupported)
-        {
-            isInited = true;
-            Debug.Log("ADManager init!" + GAME_ID + "," + _testMode);
-            Advertisement.Initialize(GAME_ID, _testMode);
-            CreateRewardAD();
-        }
-        else
-        {
-            Debug.Log("Advertisement no support");
-        }
+#if UNITY_EDITOR
+        isInited = true;
+        return;
+#endif
+        IronSource.Agent.init(GAME_ID, IronSourceAdUnits.REWARDED_VIDEO);
+        IronSource.Agent.validateIntegration();
+        Debug.Log("Init IronSource");
+        isInited = true;
+        Debug.Log("ADManager init!" + GAME_ID + "," + _testMode);
+        CreateRewardAD();
     }
 
     /// <summary>
@@ -53,7 +52,7 @@ public class ADManager : MonoSingleton<ADManager>
                 _failActionList.Add(failCallback);
             }
 
-            _proxy.adUnit = "rewardedVideo";
+            //_proxy.adUnit = "rewardedVideo";
             ModuleEventManager.instance.dispatchEvent(new MEvent_ADStarted());
 #if UNITY_EDITOR
             FinishPlayAD();
@@ -134,7 +133,6 @@ public class ADManager : MonoSingleton<ADManager>
         {
             if (_proxy != null)
             {
-                Advertisement.Initialize(GAME_ID, _testMode);
                 _proxy.SetPlayADDirty();
             }
         }, delegate ()
@@ -172,16 +170,9 @@ public class ADManager : MonoSingleton<ADManager>
     /// <summary>
     /// 展示插页广告
     /// </summary>
-    public void ShowInterstitial(string reason, string unitID = null)
+    public void ShowInterstitial()
     {
-        if (unitID == null)
-        {
-            _proxy.adUnit = unitID;
-        }
-        else
-        {
-            _proxy.adUnit = "InterstitialVideo";
-        }
+        //_proxy.adUnit = "InterstitialVideo";
 
         _failActionList.Clear();
         _actionList.Clear();

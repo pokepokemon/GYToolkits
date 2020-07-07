@@ -2,13 +2,17 @@
 using System.Collections;
 using UnityEngine.Events;
 using GYLib.Utils;
-using UnityEngine.Advertisements;
 
 /// <summary>
 /// 处理激励广告的代理(一次性)
 /// </summary>
-public class RewardADProxy : MonoBehaviour, IUnityAdsListener
-{ 
+public class RewardADProxy : MonoBehaviour
+{
+    /// <summary>
+    /// 是否正在播放广告
+    /// </summary>
+    private bool _isPlaying = false;
+
     /// <summary>
     /// 是否正在加载广告中
     /// </summary>
@@ -41,19 +45,25 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     public UnityAction<string> OnPlayFailed;
 
     private int _maskID = -1;
-
-
+    
 #if UNITY_ANDROID
-    private string _adUnitId = "rewardedVideo";
+    private string _adUnitId = "DefaultRewardedVideo";
 #elif UNITY_IPHONE
-    private string _adUnitId = "rewardedVideo";
+    private string _adUnitId = "DefaultRewardedVideo";
 #else
     private string _adUnitId = "unexpected_platform";
 #endif
 
     private void Start()
     {
-        Advertisement.AddListener(this);
+        IronSourceEvents.onRewardedVideoAdOpenedEvent += RewardedVideoAdOpenedEvent;
+        IronSourceEvents.onRewardedVideoAdClosedEvent += RewardedVideoAdClosedEvent;
+        IronSourceEvents.onRewardedVideoAvailabilityChangedEvent += RewardedVideoAvailabilityChangedEvent;
+        IronSourceEvents.onRewardedVideoAdStartedEvent += RewardedVideoAdStartedEvent;
+        IronSourceEvents.onRewardedVideoAdEndedEvent += RewardedVideoAdEndedEvent;
+        IronSourceEvents.onRewardedVideoAdRewardedEvent += RewardedVideoAdRewardedEvent;
+        IronSourceEvents.onRewardedVideoAdShowFailedEvent += RewardedVideoAdShowFailedEvent;
+
         InitRewardAD();
     }
 
@@ -66,11 +76,12 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         string content = LocalizationConfig.Instance.GetStringWithSelf("广告加载中...");
         _maskID = CommonUI.ShowUIMask(content);
         
+        bool available = IronSource.Agent.isRewardedVideoAvailable();
         if (_isLoadFail && !_isLoading)
         {
             InitRewardAD();
         }
-        else if (!GetIsReady(_adUnitId) && !_isLoading)
+        else if (!available && !_isLoading)
         {
             InitRewardAD();
         }
@@ -95,7 +106,9 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         {
             StartCallPlayAD();
         }
-        if (_isLoading && GetIsReady(_adUnitId))
+        
+        bool available = IronSource.Agent.isRewardedVideoAvailable();
+        if (_isLoading && available)
         {
             _isLoading = false;
             _isLoadFail = false;
@@ -125,12 +138,14 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     /// </summary>
     private void StartCallPlayAD()
     {
-        Debug.Log("IsReady : " + GetIsReady(_adUnitId) + ", adUnitId : " + _adUnitId);
-        if (GetIsReady(_adUnitId) && _needPlayAD)
+        bool available = IronSource.Agent.isRewardedVideoAvailable();
+        Debug.Log("IsReady : " + available + ", adUnitId : " + _adUnitId);
+        if (available && _needPlayAD)
         {
             _needPlayAD = false;
             _ADLoadingStartTime = -1;
-            Advertisement.Show(_adUnitId);
+            _isPlaying = true;
+            IronSource.Agent.showRewardedVideo(_adUnitId);
         }
     }
 
@@ -139,6 +154,7 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     /// </summary>
     private void CheckCloseAD()
     {
+        _isPlaying = false;
         if (_maskID != -1)
         {
             CommonUI.CloseUIMask(_maskID);
@@ -156,17 +172,14 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     /// </summary>
     public void InitRewardAD()
     {
-        if (!GetIsReady(_adUnitId))
+        bool available = IronSource.Agent.isRewardedVideoAvailable();
+        if (!available)
         {
-            Debug.Log("Start load AD : " + _adUnitId + ", IsReady : " + GetIsReady(_adUnitId));
+            Debug.Log("Start load AD : " + _adUnitId + ", IsReady : " + available);
             _ADLoadingStartTime = TimeUtil.shareRealTimeSincePlay;
             _isLoadFail = false;
             _isLoading = true;
-            Advertisement.Load(_adUnitId);
-        }
-        else
-        {
-            Debug.Log("Start but is ready : " + _adUnitId);
+            //Advertisement.Load(_adUnitId);
         }
     }
 
@@ -176,9 +189,10 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     /// <param name="placementId"></param>
     public void OnUnityAdsReady(string placementId)
     {
-        Debug.Log("OnADsReady : " + placementId);
+        Debug.Log("ad placement isReady : " + placementId);
         if (_adUnitId == placementId)
         {
+            
             _isLoading = false;
             _isLoadFail = false;
             if (_needPlayAD)
@@ -221,7 +235,7 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
             _isLoadFail = false;
         }
     }
-
+    
     /// <summary>
     /// 广告播放完成(或播放失败)
     /// </summary>
@@ -260,19 +274,13 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
                     OnPlayFailed("Play AD failed");
                 }
             }
+            else if (showResult == ShowResult.Closed)
+            {
+                CheckCloseAD();
+                _ADLoadingStartTime = -1;
+            }
         }
     }
-
-    /// <summary>
-    /// 广告是否准备完成
-    /// </summary>
-    /// <param name="adUnitId"></param>
-    /// <returns></returns>
-    public bool GetIsReady(string adUnitId)
-    {
-        return Advertisement.IsReady(_adUnitId);
-    }
-
     public string adUnit
     {
         set
@@ -280,22 +288,103 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
             if (_adUnitId != value)
             {
                 _adUnitId = value;
-                Debug.Log("Change adUnit : " + value);
-                if (!Advertisement.isShowing)
+                if (!_isPlaying)
                 {
                     _isLoading = false;
-                    _isLoadFail = false;
+                    _isLoadFail = true;
                     InitRewardAD();
                 }
             }
         }
     }
 
+    public enum ShowResult
+    {
+        Finished = 1,
+
+        Skipped = 2,
+
+        Failed = 3,
+
+        Closed = 4,
+    }
+
     private void OnDestroy()
     {
         if (this.gameObject != null)
         {
-            Advertisement.RemoveListener(this);
+            IronSourceEvents.onRewardedVideoAdOpenedEvent -= RewardedVideoAdOpenedEvent;
+            IronSourceEvents.onRewardedVideoAdClosedEvent -= RewardedVideoAdClosedEvent;
+            IronSourceEvents.onRewardedVideoAvailabilityChangedEvent -= RewardedVideoAvailabilityChangedEvent;
+            IronSourceEvents.onRewardedVideoAdStartedEvent -= RewardedVideoAdStartedEvent;
+            IronSourceEvents.onRewardedVideoAdEndedEvent -= RewardedVideoAdEndedEvent;
+            IronSourceEvents.onRewardedVideoAdRewardedEvent -= RewardedVideoAdRewardedEvent;
+            IronSourceEvents.onRewardedVideoAdShowFailedEvent -= RewardedVideoAdShowFailedEvent;
         }
     }
+
+    #region IronSource
+
+    //Invoked when the RewardedVideo ad view has opened.
+    //Your Activity will lose focus. Please avoid performing heavy 
+    //tasks till the video ad will be closed.
+    void RewardedVideoAdOpenedEvent()
+    {
+    }
+
+    //Invoked when the RewardedVideo ad view is about to be closed.
+    //Your activity will now regain its focus.
+    void RewardedVideoAdClosedEvent()
+    {
+        OnUnityAdsDidFinish(_adUnitId, ShowResult.Closed);
+    }
+
+    //Invoked when there is a change in the ad availability status.
+    //@param - available - value will change to true when rewarded videos are available. 
+    //You can then show the video by calling showRewardedVideo().
+    //Value will change to false when no videos are available.
+    void RewardedVideoAvailabilityChangedEvent(bool available)
+    {
+        //Change the in-app 'Traffic Driver' state according to availability.
+        bool rewardedVideoAvailability = available;
+        if (available)
+        {
+            OnUnityAdsReady(_adUnitId);
+        }
+    }
+
+    //Invoked when the user completed the video and should be rewarded. 
+    //If using server-to-server callbacks you may ignore this events and wait for 
+    // the callback from the  ironSource server.
+    //@param - placement - placement object which contains the reward data
+    void RewardedVideoAdRewardedEvent(IronSourcePlacement placement)
+    {
+        OnUnityAdsDidFinish(_adUnitId, ShowResult.Finished);
+    }
+
+    //Invoked when the Rewarded Video failed to show
+    //@param description - string - contains information about the failure.
+    void RewardedVideoAdShowFailedEvent(IronSourceError error)
+    {
+        OnUnityAdsDidFinish(_adUnitId, ShowResult.Failed);
+    }
+
+    // ----------------------------------------------------------------------------------------
+    // Note: the events below are not available for all supported rewarded video ad networks. 
+    // Check which events are available per ad network you choose to include in your build. 
+    // We recommend only using events which register to ALL ad networks you include in your build. 
+    // ----------------------------------------------------------------------------------------
+
+    //Invoked when the video ad starts playing. 
+    void RewardedVideoAdStartedEvent()
+    {
+    }
+
+    //Invoked when the video ad finishes playing. 
+    void RewardedVideoAdEndedEvent()
+    {
+        OnUnityAdsDidFinish(_adUnitId, ShowResult.Closed);
+    }
+
+    #endregion
 }
