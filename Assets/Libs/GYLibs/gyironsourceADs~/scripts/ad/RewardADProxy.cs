@@ -97,15 +97,11 @@ public class RewardADProxy : MonoBehaviour
             float curTime = TimeUtil.shareRealTimeSincePlay;
             if (curTime - _ADFailTime > _AD_RETRY_INTERVAL)
             {
+                _ADFailTime = -1;
                 InitRewardAD();
             }
         }
 
-        //加载成功并且需要播放广告了
-        if (!_isLoadFail && !_isLoading && _needPlayAD)
-        {
-            StartCallPlayAD();
-        }
         
         bool available = IronSource.Agent.isRewardedVideoAvailable();
         if (_isLoading && available)
@@ -113,6 +109,11 @@ public class RewardADProxy : MonoBehaviour
             _isLoading = false;
             _isLoadFail = false;
             _ADLoadingStartTime = -1;
+        }
+        //加载成功并且需要播放广告了
+        if (!_isLoadFail && !_isLoading && _needPlayAD)
+        {
+            StartCallPlayAD();
         }
 
         if (_isLoading && _ADLoadingStartTime != -1)
@@ -192,7 +193,6 @@ public class RewardADProxy : MonoBehaviour
         Debug.Log("ad placement isReady : " + placementId);
         if (_adUnitId == placementId)
         {
-            
             _isLoading = false;
             _isLoadFail = false;
             if (_needPlayAD)
@@ -264,6 +264,7 @@ public class RewardADProxy : MonoBehaviour
             else if (showResult == ShowResult.Failed)
             {
                 _isLoadFail = true;
+                _isLoading = false;
                 _ADFailTime = TimeUtil.shareRealTimeSincePlay;
                 _ADLoadingStartTime = -1;
 

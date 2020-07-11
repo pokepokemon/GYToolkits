@@ -3,12 +3,17 @@ using System.Collections;
 using UnityEngine.Events;
 using GYLib.Utils;
 using UnityEngine.Advertisements;
+using System.Collections.Generic;
 
 /// <summary>
 /// 处理激励广告的代理(一次性)
 /// </summary>
 public class RewardADProxy : MonoBehaviour, IUnityAdsListener
-{ 
+{
+    private HashSet<string> _adUnitIdReadyMap = new HashSet<string>();
+
+    private bool _isPlaying = false;
+
     /// <summary>
     /// 是否正在加载广告中
     /// </summary>
@@ -65,7 +70,8 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         _needPlayAD = true;
         string content = LocalizationConfig.Instance.GetStringWithSelf("广告加载中...");
         _maskID = CommonUI.ShowUIMask(content);
-        
+
+        Debug.Log("placement state : " + _adUnitId + " is " + Advertisement.GetPlacementState(_adUnitId) + ", isLoading = " + _isLoading + ", isLoadFail = " + _isLoadFail);
         if (_isLoadFail && !_isLoading)
         {
             InitRewardAD();
@@ -90,11 +96,7 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
             }
         }
 
-        //加载成功并且需要播放广告了
-        if (!_isLoadFail && !_isLoading && _needPlayAD)
-        {
-            StartCallPlayAD();
-        }
+        //广告是否加载成功
         if (_isLoading && GetIsReady(_adUnitId))
         {
             _isLoading = false;
@@ -102,6 +104,11 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
             _ADLoadingStartTime = -1;
         }
 
+        //加载成功并且需要播放广告了
+        if (!_isLoadFail && !_isLoading && _needPlayAD)
+        {
+            StartCallPlayAD();
+        }
         if (_isLoading && _ADLoadingStartTime != -1)
         {
             float curTime = TimeUtil.shareRealTimeSincePlay;
@@ -130,6 +137,8 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         {
             _needPlayAD = false;
             _ADLoadingStartTime = -1;
+            _isPlaying = true;
+            _adUnitIdReadyMap.Remove(_adUnitId);
             Advertisement.Show(_adUnitId);
         }
     }
@@ -177,6 +186,7 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     public void OnUnityAdsReady(string placementId)
     {
         Debug.Log("OnADsReady : " + placementId);
+        _adUnitIdReadyMap.Add(_adUnitId);
         if (_adUnitId == placementId)
         {
             _isLoading = false;
@@ -200,9 +210,10 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         _ADLoadingStartTime = -1;
         _isLoading = false;
 
-        if (_needPlayAD)
+        if (_needPlayAD || _isPlaying)
         {
             _needPlayAD = false;
+            _isPlaying = false;
             CheckCloseAD();
             OnPlayFailed("load AD failed : " + message);
         }
@@ -214,6 +225,7 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     /// <param name="placementId"></param>
     public void OnUnityAdsDidStart(string placementId)
     {
+        Debug.Log("ads start");
         if (placementId == _adUnitId)
         {
             BgmManager.Instance.Pause();
@@ -234,6 +246,7 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
             if (showResult == ShowResult.Finished)
             {
                 Debug.Log("Video completed - Offer a reward to the player");
+                _isPlaying = false;
                 CheckCloseAD();
                 OnPlayADEnd();
 
@@ -243,13 +256,17 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
             else if (showResult == ShowResult.Skipped)
             {
                 Debug.Log("Video completed - skip gain no reward");
+                _isPlaying = false;
                 CheckCloseAD();
                 _ADLoadingStartTime = -1;
                 InitRewardAD();
             }
             else if (showResult == ShowResult.Failed)
             {
+                Debug.Log("Fail to show");
                 _isLoadFail = true;
+                _isLoading = false;
+                _isPlaying = false;
                 _ADFailTime = TimeUtil.shareRealTimeSincePlay;
                 _ADLoadingStartTime = -1;
 
@@ -270,7 +287,7 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     /// <returns></returns>
     public bool GetIsReady(string adUnitId)
     {
-        return Advertisement.IsReady(_adUnitId);
+        return _adUnitIdReadyMap.Contains(adUnitId) || Advertisement.IsReady(_adUnitId);
     }
 
     public string adUnit

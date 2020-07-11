@@ -174,7 +174,8 @@ public class ADManager : MonoSingleton<ADManager>
     /// </summary>
     public void ShowInterstitial(string reason, string unitID = null)
     {
-        if (unitID == null)
+#if !UNITY_EDITOR
+        if (unitID != null)
         {
             _proxy.adUnit = unitID;
         }
@@ -186,8 +187,10 @@ public class ADManager : MonoSingleton<ADManager>
         _failActionList.Clear();
         _actionList.Clear();
 
-        ModuleEventManager.instance.dispatchEvent(new MEvent_ADStarted());
         _proxy.SetPlayADDirty();
+#endif
+
+        ModuleEventManager.instance.dispatchEvent(new MEvent_ADStarted());
     }
 
     /// <summary>
