@@ -6,6 +6,8 @@ public class AspectRatioFix : MonoBehaviour
     public SpriteRenderer rink;
     public bool needUpdate;
 
+    private Camera _cam;
+
     // Use this for initialization
     void Start()
     {
@@ -22,17 +24,18 @@ public class AspectRatioFix : MonoBehaviour
 
     private void RefreshFix()
     {
+        _cam = _cam ?? Camera.main;
         float screenRatio = (float)Screen.width / (float)Screen.height;
         float targetRatio = rink.bounds.size.x / rink.bounds.size.y;
 
         if (screenRatio >= targetRatio)
         {
-            Camera.main.orthographicSize = rink.bounds.size.y / 2;
+            _cam.orthographicSize = rink.bounds.size.y / 2;
         }
         else
         {
             float differenceInSize = targetRatio / screenRatio;
-            Camera.main.orthographicSize = rink.bounds.size.y / 2 * differenceInSize;
+            _cam.orthographicSize = rink.bounds.size.y / 2 * differenceInSize;
         }
     }
 }

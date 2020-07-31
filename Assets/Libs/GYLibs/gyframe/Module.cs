@@ -37,7 +37,7 @@ namespace GYLib.GYFrame
         {
         }
 
-        public Processor GetProcessor(Type processor)
+        public Processor getProcessor(Type processor)
         {
             Type key = processor;
             if (_dict.ContainsKey(key))

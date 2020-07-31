@@ -6,7 +6,7 @@ public class SpriteHorizonScaler : MonoBehaviour
     public SpriteRenderer rink;
     public bool needUpdate;
 
-    private float _originRatio = 1;
+    private float _originRatio;
     private Vector3 _originScale;
 
     private bool isInited = false;
@@ -38,9 +38,6 @@ public class SpriteHorizonScaler : MonoBehaviour
     {
         InitOrigin();
         float screenRatio = (float)Screen.width / (float)Screen.height;
-        if (_originRatio != 0)
-        {
-            rink.transform.localScale = new Vector3(_originScale.x, _originScale.y * screenRatio / _originRatio, _originScale.z);
-        }
+        rink.transform.localScale = new Vector3(_originScale.x, _originScale.y * screenRatio / _originRatio, _originScale.z);
     }
 }

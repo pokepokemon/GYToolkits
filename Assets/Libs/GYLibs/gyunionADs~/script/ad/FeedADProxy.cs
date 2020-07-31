@@ -24,7 +24,7 @@ public class FeedADProxy : MonoBehaviour
 #else
     private string _adUnitId = "945251448";
 #endif
-    
+
     private object _iosFeedAd;
     private ExpressAd _feedAd;
     
@@ -197,6 +197,7 @@ public class FeedADProxy : MonoBehaviour
         }
         NativeAdManager.Instance().DestoryExpressAd(_feedAd.handle);
         _feedAd = null;
+        _alreadyShow = false;
         Debug.Log("Close AD");
     }
     

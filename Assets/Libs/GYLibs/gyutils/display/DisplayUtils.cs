@@ -78,6 +78,8 @@ namespace GYLib.Utils
                 v *= 1000;
                 v = Math.Round(v, 12);
             }*/
+            //Replace those comment
+            v = Math.Round(v, 2);
 
             while (Math.Floor(v).ToString().Length > 3)
             {
@@ -85,7 +87,7 @@ namespace GYLib.Utils
                     break;
                 exp -= 3;
                 v /= 1000;
-                v = Math.Round(v, 12);
+                v = Math.Round(v, 12); 
             }
             if (exp != 0)
             {

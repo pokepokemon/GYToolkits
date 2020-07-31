@@ -96,15 +96,15 @@ public class RewardADProxy : MonoBehaviour
             }
         }
 
-        //加载成功并且需要播放广告了
-        if (!_isLoadFail && !_isLoading && _needPlayAD)
-        {
-            StartCallPlayAD();
-        }
         if (_isLoading && _isADLoaded)
         {
             _isLoading = false;
             _isLoadFail = false;
+        }
+        //加载成功并且需要播放广告了
+        if (!_isLoadFail && !_isLoading && _needPlayAD)
+        {
+            StartCallPlayAD();
         }
 
         if (_isLoading && _ADLoadingStartTime != -1)
@@ -302,6 +302,7 @@ public class RewardADProxy : MonoBehaviour
                 _isLoadFail = true;
                 _ADFailTime = TimeUtil.shareRealTimeSincePlay;
                 _ADLoadingStartTime = -1;
+                _isLoading = false;
 
                 if (_needPlayAD)
                 {

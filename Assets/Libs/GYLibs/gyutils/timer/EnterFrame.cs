@@ -15,18 +15,19 @@ namespace GYLib.Utils
         {
         }
 
+        List<IFrame> _frameListBuffer = new List<IFrame>();
         // Update is called once per frame
         public void Update()
         {
             if (isSafe)
             {
-                List<IFrame> copyList = new List<IFrame>();
-                copyList.AddRange(_list);
-                for (int i = 0; i < copyList.Count; i++)
+                _frameListBuffer.Clear();
+                _frameListBuffer.AddRange(_list);
+                for (int i = 0; i < _frameListBuffer.Count; i++)
                 {
-                    if (_list.IndexOf(copyList[i]) != -1)
+                    if (_list.IndexOf(_frameListBuffer[i]) != -1)
                     {
-                        copyList[i].Update();
+                        _frameListBuffer[i].Update();
                     }
                 }
             }
@@ -58,6 +59,7 @@ namespace GYLib.Utils
         public void removeAll()
         {
             _list.Clear();
+            _frameListBuffer.Clear();
         }
     }
 }

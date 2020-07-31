@@ -19,8 +19,11 @@ public class UIModelBlind : MonoBehaviour {
 
     private bool _isReset = false;
 
+    private Camera _cameraCache;
+
     // Use this for initialization
     void Start () {
+        _cameraCache = Camera.main; 
         ResetPos();
     }
 
@@ -32,7 +35,7 @@ public class UIModelBlind : MonoBehaviour {
         if (modelTransform != null && screenUITransform != null && canvas != null)
         {
             float scaleFactor = canvas.scaleFactor;
-            Vector2 screentPosition = Camera.main.WorldToScreenPoint(modelTransform.position);
+            Vector2 screentPosition = _cameraCache.WorldToScreenPoint(modelTransform.position);
             screentPosition.x = screentPosition.x - Screen.width / 2 + offsetX * scaleFactor;
             screentPosition.y = screentPosition.y - Screen.height / 2 + offsetY * scaleFactor;
             if (!firstCalc && !_isReset)

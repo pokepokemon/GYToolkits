@@ -4,6 +4,7 @@ using GYLib;
 using UnityEngine.Events;
 using System.Collections.Generic;
 using ByteDance.Union;
+using GYLib.GYFrame;
 
 public class ADManager : MonoSingleton<ADManager>
 {
@@ -15,6 +16,7 @@ public class ADManager : MonoSingleton<ADManager>
     private RewardADProxy _proxy;
     private BannerADProxy _bannerProxy;
     private FeedADProxy _feedProxy;
+    private InterstitialADProxy _interstitialProxy;
 
 
     private string _ADReason;
@@ -233,24 +235,24 @@ public class ADManager : MonoSingleton<ADManager>
     /// <summary>
     /// 展示Feed
     /// </summary>
-    public void ShowInterstitial()
+    public void ShowFeed()
     {
-        GetInterstitialProxy().SetPlayDirty();
+        GetFeedProxy().SetPlayDirty();
     }
 
     /// <summary>
     /// 隐藏Banner
     /// </summary>
-    public void HideInterstitial()
+    public void HideFeed()
     {
-        GetInterstitialProxy().SetCloseDirty();
+        GetFeedProxy().SetCloseDirty();
     }
 
     /// <summary>
-    /// 获取Banner代理
+    /// 获取Feed代理
     /// </summary>
     /// <returns></returns>
-    public FeedADProxy GetInterstitialProxy()
+    public FeedADProxy GetFeedProxy()
     {
         if (_feedProxy == null)
         {
@@ -262,6 +264,51 @@ public class ADManager : MonoSingleton<ADManager>
             }
         }
         return _feedProxy;
+    }
+
+    #endregion
+
+    #region interstitial
+
+    /// <summary>
+    /// 展示Feed
+    /// </summary>
+    public void ShowInterstitial(string reason, string unitID = null)
+    {
+#if !UNITY_EDITOR
+        _singleAction = null;
+        _singleFailAction = null;
+        Debug.Log("try load interstitial ad");
+        GetInterstitialProxy().SetPlayDirty();
+#endif
+
+        ModuleEventManager.instance.dispatchEvent(new MEvent_ADStarted());
+    }
+
+    /// <summary>
+    /// 隐藏Banner
+    /// </summary>
+    public void HideInterstitial()
+    {
+        GetInterstitialProxy().SetCloseDirty();
+    }
+
+    /// <summary>
+    /// 获取Interstitial代理
+    /// </summary>
+    /// <returns></returns>
+    public InterstitialADProxy GetInterstitialProxy()
+    {
+        if (_interstitialProxy == null)
+        {
+            GameObject go = new GameObject("ADInterstitialProxy");
+            if (this.gameObject != null)
+            {
+                go.transform.SetParent(this.transform, false);
+                _interstitialProxy = go.AddComponent<InterstitialADProxy>();
+            }
+        }
+        return _interstitialProxy;
     }
 
     #endregion

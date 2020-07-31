@@ -25,7 +25,11 @@ public class ImageResizeText : MonoBehaviour
         if (text != null && image != null)
         {
             RectTransform rect = text.rectTransform;
-            image.rectTransform.sizeDelta = new Vector2(rect.sizeDelta.x + expandWidth, rect.sizeDelta.y + expandHeight);
+            
+            float targetWidth = expandWidth != 0 ? rect.sizeDelta.x + expandWidth : image.rectTransform.sizeDelta.x;
+            float targetHeight = expandHeight != 0 ? rect.sizeDelta.y + expandHeight : image.rectTransform.sizeDelta.y;
+
+            image.rectTransform.sizeDelta = new Vector2(targetWidth, targetHeight);
         }
     }
 }

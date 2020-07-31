@@ -124,7 +124,7 @@ namespace GYLib.Utils
         }
 
         /// <summary>
-        /// 2019年到现在的时间(秒)
+        /// 2019年到现在的Utc时间(秒)
         /// </summary>
         /// <returns></returns>
         public static long GetCurrentSec2019()
@@ -147,8 +147,31 @@ namespace GYLib.Utils
         public static long GetTodaySec2019()
         {
             DateTime now = DateTime.UtcNow;
-            DateTime today = TimeZoneInfo.ConvertTimeFromUtc(new DateTime(now.Year, now.Month, now.Day), TimeZoneInfo.Local);
+            DateTime today = new DateTime(now.Year, now.Month, now.Day);
             TimeSpan ts = today - new DateTime(2019, 1, 1, 0, 0, 0, 0);
+            return Convert.ToInt64(ts.TotalSeconds);
+        }
+
+        /// <summary>
+        /// 获取Utc当前时间
+        /// </summary>
+        /// <returns></returns>
+        public static DateTime GetCurrentDate()
+        {
+            return DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// 获取当地2019年到某天的UTC秒数
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="day"></param>
+        /// <returns></returns>
+        public static long GetSec2019ByDate(int year, int month, int day)
+        {
+            DateTime thisday = new DateTime(year, month, day);
+            TimeSpan ts = thisday - new DateTime(2019, 1, 1, 0, 0, 0, 0);
             return Convert.ToInt64(ts.TotalSeconds);
         }
 

@@ -15,10 +15,11 @@ namespace GYLib.GYFrame
 
         private GameObject _go;
 
-        public void StartWaiting(ModuleEvent completedEventArg = null)
+        public void StartWaiting(ModuleEvent completedEventArg = null, string name = "WaitingForModuleEvent")
         {
-            GameObject go = new GameObject("WaitingForModuleEvent");
+            GameObject go = new GameObject(name);
             _go = go;
+            MonoBehaviour.DontDestroyOnLoad(_go);
             WaitingModuleMonobehaviour behaviour = go.AddComponent<WaitingModuleMonobehaviour>();
             behaviour.allList = new List<string>(eventList.ToArray());
             behaviour.waitingList = eventList;

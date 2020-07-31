@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Banner广告代理
 /// </summary>
-public class BannerADProxy : MonoBehaviour
+public class InterstitialADProxy : MonoBehaviour
 {
     private bool _needShow;
 
@@ -25,19 +25,20 @@ public class BannerADProxy : MonoBehaviour
     private string _adUnitId = "945251441";
 #endif
 
-#if UNITY_IOS
-    private ExpressBannerAd _iosBannerAd;
+#if UNITY_IPHONE
+    private ExpressInterstitialAd _intersititialAd;
 #else
-    private object _iosBannerAd;
-    private ExpressAd _bannerAd;
+    private ExpressAd _intersititialAd;
 #endif
 
-    private int _curPos = 0;
-    public void SetPlayDirty(int pos = 0)
+    public void SetPlayDirty()
     {
         Debug.Log("SetPlayerAD");
-        _curPos = pos;
         _needShow = true;
+        if (!_isLoading && _intersititialAd != null)
+        {
+            CloseAD();
+        }
     }
 
     public void SetCloseDirty()
@@ -57,7 +58,7 @@ public class BannerADProxy : MonoBehaviour
             _lastCheckTime = curTime;
 
             //加载成功
-            if (_isLoading && (_bannerAd != null || _iosBannerAd != null))
+            if (_isLoading && _intersititialAd != null)
             {
                 _isLoading = false;
             }
@@ -65,24 +66,24 @@ public class BannerADProxy : MonoBehaviour
             //未开始加载
             if (_needShow)
             {
-                if (!_isLoading && (_bannerAd == null && _iosBannerAd == null))
+                if (!_isLoading && _intersititialAd == null)
                 {
                     _isLoading = true;
-                    LoadBannerAd();
+                    LoadIntersititialAd();
                 }
             }
 
             //是否播放或停止
             if (_needShow)
             {
-                if (!_isShowing && (_bannerAd != null || _iosBannerAd != null))
+                if (!_isShowing && _intersititialAd != null)
                 {
-                    ShowBannerAd();
+                    ShowIntersititialAd();
                 }
             }
             else
             {
-                if (_bannerAd != null || _iosBannerAd != null)
+                if (_intersititialAd != null)
                 {
                     CloseAD();
                 }
@@ -94,7 +95,7 @@ public class BannerADProxy : MonoBehaviour
     /// <summary>
     /// 加载广告
     /// </summary>
-    public void LoadBannerAd()
+    public void LoadIntersititialAd()
     {
 #if UNITY_IOS
         if (this._iosBannerAd != null)
@@ -103,66 +104,61 @@ public class BannerADProxy : MonoBehaviour
             return;
         }
 #else
-        if (this._bannerAd != null)
+        if (this._intersititialAd != null)
         {
             Debug.LogError("AD already loaded!");
             return;
         }
 #endif
 
-        Debug.Log("Load AD!");
+        Debug.Log("Load Intersititial AD!");
         var adSlot = new AdSlot.Builder()
 #if UNITY_IOS
-            .SetCodeId(_adUnitId)
+                             .SetCodeId(_adUnitId)
+                             .SetExpressViewAcceptedSize(200, 300)
 #else
-            .SetCodeId(_adUnitId)
+                             .SetCodeId(_adUnitId)
+                             .SetExpressViewAcceptedSize(350, 0)
+                             ////期望模板广告view的size,单位dp，//高度设置为0,则高度会自适应
 #endif
-            .SetExpressViewAcceptedSize(640, 100)
-            .SetSupportDeepLink(true)
-            .SetImageAcceptedSize(1920, 1080)
-            .SetAdCount(1)
-            .SetOrientation(AdOrientation.Horizontal)
-            .Build();
-        _isLoading = true;
-        _alreadyShow = true;
+                             .SetSupportDeepLink(true)
+                             .SetAdCount(1)
+                             .SetImageAcceptedSize(1080, 1920)
+                             .Build();
+        ADManager.Instance.AdNative.LoadExpressInterstitialAd(adSlot, new ExpressAdListener(this, 2));
 
-        Debug.Log("Set already : " + this._alreadyShow);
-        ADManager.Instance.AdNative.LoadExpressBannerAd(adSlot, new ExpressAdListener(this));
-        
     }
 
     /// <summary>
     /// 展示
     /// </summary>
-    public void ShowBannerAd()
+
+    public void ShowIntersititialAd()
     {
-        _isShowing = true;
 #if UNITY_IOS
-       if (_iosBannerAd == null)
+        if (intersititialAd == null)
         {
-            Debug.LogError("Load AD first!");
+            Debug.LogError("请先加载广告");
+            this.information.text = "请先加载广告";
             return;
         }
-        this._iosBannerAd.ShowNativeAd();
+        _intersititialAd.ShowNativeAd(AdSlotType.InteractionAd);
+		_intersititialAd = null;
 #else
-        if (_bannerAd == null)
+        if (_intersititialAd == null)
         {
             Debug.LogError("Load AD first!");
             return;
         }
 
-        Debug.Log("Show AD! _needShow " + _needShow);
-        //设置轮播间隔 30s--120s;不设置则不开启轮播
-        //this._bannerAd.SetSlideIntervalTime(30 * 1000);
-        ExpressAdInteractionListener expressAdInteractionListener = new ExpressAdInteractionListener(this);
-        ExpressAdDislikeCallback dislikeCallback = new ExpressAdDislikeCallback(this);
-        
-        this._bannerAd.SetDownloadListener(
-            new AppDownloadListener(this));
-
+        Debug.Log("Show IntersititialAd");
         this._alreadyShow = true;
-        //NativeAdManager.Instance().ShowExpressBannerAd(ADManager.Instance.activity, _bannerAd.handle, expressAdInteractionListener, dislikeCallback, _curPos);
-        NativeAdManager.Instance().ShowExpressBannerAd(ADManager.Instance.activity, _bannerAd.handle, expressAdInteractionListener, dislikeCallback);
+        this._isShowing = true;
+        _isLoading = false;
+        ExpressAdInteractionListener expressAdInteractionListener = new ExpressAdInteractionListener(this, 1);
+        this._intersititialAd.SetDownloadListener(
+            new AppDownloadListener(this));
+        NativeAdManager.Instance().ShowExpressInterstitialAd(ADManager.Instance.activity, _intersititialAd.handle, expressAdInteractionListener);
 #endif
     }
 
@@ -172,7 +168,7 @@ public class BannerADProxy : MonoBehaviour
     public void CloseAD()
     {
         _isShowing = false;
-        if (_bannerAd == null)
+        if (_intersititialAd == null)
         {
             return;
         }
@@ -187,8 +183,8 @@ public class BannerADProxy : MonoBehaviour
                 return;
             }
         }
-        NativeAdManager.Instance().DestoryExpressAd(_bannerAd.handle);
-        _bannerAd = null;
+        _intersititialAd.Dispose();
+        _intersititialAd = null;
         _alreadyShow = false;
         Debug.Log("Close AD");
     }
@@ -202,19 +198,20 @@ public class BannerADProxy : MonoBehaviour
     }
 
 #region Listener
-
+    
     private sealed class ExpressAdListener : IExpressAdListener
     {
-        private BannerADProxy _proxy;
+        private InterstitialADProxy _proxy;
+        private int type;//0:feed   1:banner  2:interstitial
 
-        public ExpressAdListener(BannerADProxy proxy)
+        public ExpressAdListener(InterstitialADProxy proxy, int type)
         {
             this._proxy = proxy;
+            this.type = type;
         }
-
         public void OnError(int code, string message)
         {
-            Debug.LogError(string.Format("errorcode [{0}]: {1}", code, message));
+            Debug.LogError("onExpressAdError: " + message + "_" + code);
             _proxy.OnLoadADFail();
         }
 
@@ -224,8 +221,11 @@ public class BannerADProxy : MonoBehaviour
             IEnumerator<ExpressAd> enumerator = ads.GetEnumerator();
             if (enumerator.MoveNext())
             {
-                this._proxy._alreadyShow = false;
-                this._proxy._bannerAd = enumerator.Current;
+                if (type == 2)
+                {
+                    this._proxy.CloseAD();
+                    this._proxy._intersititialAd = enumerator.Current; 
+                }
             }
         }
 #if UNITY_IOS
@@ -233,76 +233,67 @@ public class BannerADProxy : MonoBehaviour
         public void OnExpressBannerAdLoad(ExpressBannerAd ad)
         {
             Debug.Log("OnExpressBannerAdLoad");
-            this._proxy._iosBannerAd = ad;
+        }
+
+        public void OnExpressInterstitialAdLoad(ExpressInterstitialAd ad)
+        {
+            Debug.Log("OnExpressInterstitialAdLoad");
+            ad.SetExpressInteractionListener(
+                new ExpressAdInteractionListener(this._proxy, 2));
+            ad.SetDownloadListener(
+                new AppDownloadListener(this._proxy));
+            this._proxy._intersititialAd = ad;
         }
 #else
 #endif
-    }
-
-
-    private sealed class ExpressAdDislikeCallback : IDislikeInteractionListener
-    {
-        private BannerADProxy _proxy;
-
-        public ExpressAdDislikeCallback(BannerADProxy proxy)
-        {
-            this._proxy = proxy;
-        }
-        public void OnCancel()
-        {
-            Debug.Log("express dislike OnCancel");
-        }
-
-        public void OnSelected(int var1, string var2)
-        {
-            Debug.Log("express dislike OnSelected:" + var2);
-#if UNITY_IOS
-#else
-            _proxy.SetCloseDirty(); 
-#endif
-        }
     }
 
 
     private sealed class ExpressAdInteractionListener : IExpressAdInteractionListener
     {
-        private BannerADProxy _proxy;
+        private InterstitialADProxy _proxy;
+        int type;//0:feed   1:banner  2:interstitial
 
-        public ExpressAdInteractionListener(BannerADProxy proxy)
+        public ExpressAdInteractionListener(InterstitialADProxy proxy, int type)
         {
             this._proxy = proxy;
+            this.type = type;
         }
+
         public void OnAdClicked(ExpressAd ad)
         {
-            Debug.Log("express OnAdClicked");
+            Debug.Log("express OnAdClicked,type:" + type);
         }
 
         public void OnAdShow(ExpressAd ad)
         {
-            Debug.Log("express OnAdShow");
+            Debug.Log("express OnAdShow,type:" + type);
         }
 
         public void OnAdViewRenderError(ExpressAd ad, int code, string message)
         {
-            Debug.LogError(string.Format("express OnAdViewRenderError [{0}] : {1}", code, message));
+            Debug.Log("express OnAdViewRenderError,type:" + type + "_" + code + "_" + message);
+            _proxy.CloseAD();
         }
 
         public void OnAdViewRenderSucc(ExpressAd ad, float width, float height)
         {
-            Debug.Log("express OnAdViewRenderSucc : " + width + "_" + height);
+            Debug.Log("express OnAdViewRenderSucc,type:" + type);
         }
+
         public void OnAdClose(ExpressAd ad)
         {
-            Debug.Log("express OnAdClose" );
+            Debug.Log("express OnAdClose,type:" + type);
+            _proxy.CloseAD();
         }
     }
 
 
     private sealed class AppDownloadListener : IAppDownloadListener
     {
-        private BannerADProxy _proxy;
+        private InterstitialADProxy _proxy;
 
-        public AppDownloadListener(BannerADProxy proxy)
+        public AppDownloadListener(InterstitialADProxy proxy)
         {
             this._proxy = proxy;
         }
@@ -314,32 +305,32 @@ public class BannerADProxy : MonoBehaviour
         public void OnDownloadActive(
             long totalBytes, long currBytes, string fileName, string appName)
         {
-            Debug.Log("Downloading...Click to pause");
+            Debug.Log("OnDownloadActive");
         }
 
         public void OnDownloadPaused(
             long totalBytes, long currBytes, string fileName, string appName)
         {
-            Debug.Log("Download pause, Click to continue...");
+            Debug.Log("OnDownloadPaused");
         }
 
         public void OnDownloadFailed(
             long totalBytes, long currBytes, string fileName, string appName)
         {
-            Debug.LogError("Download failed, click to try again!");
+            Debug.LogError("OnDownloadFailed");
         }
 
         public void OnDownloadFinished(
             long totalBytes, string fileName, string appName)
         {
-            Debug.Log("Download Completed, click to download again...");
+            Debug.Log("OnDownloadFinished");
         }
 
         public void OnInstalled(string fileName, string appName)
         {
-            Debug.Log("Install completed.");
+            Debug.Log("OnInstalled");
         }
     }
 
-#endregion
+    #endregion
 }
