@@ -3,6 +3,7 @@ using System.Collections;
 using GYLib;
 using System.Collections.Generic;
 using UnityEngine.Events;
+using System;
 
 /// <summary>
 /// 异步ResourceLoad加载器
@@ -25,7 +26,7 @@ public class ResoucesLoader : MonoSingleton<ResoucesLoader>
 
     public void AddTask(string path, UnityAction<UnityEngine.Object, string> loadCallback)
     {
-        int reqIndex = _reqList.FindIndex((x) => x.path == path);
+        int reqIndex = _reqList.FindIndex((x) => x.path == path && x.type == null);
         if (reqIndex != -1)
         {
             _reqList[reqIndex].AddCallback(loadCallback);
@@ -42,6 +43,28 @@ public class ResoucesLoader : MonoSingleton<ResoucesLoader>
             _isRunning = true;
         }
     }
+
+    public void AddTaskSetType(string path, UnityAction<UnityEngine.Object, string> loadCallback, Type type)
+    {
+        int reqIndex = _reqList.FindIndex((x) => x.path == path && x.type == type);
+        if (reqIndex != -1)
+        {
+            _reqList[reqIndex].AddCallback(loadCallback);
+        }
+        else
+        {
+            ResourceLoadTask task = new ResourceLoadTask();
+            task.path = path;
+            task.AddCallback(loadCallback);
+            task.type = type;
+            _reqList.Add(task);
+        }
+        if (!_isRunning)
+        {
+            _isRunning = true;
+        }
+    }
+
 
     // Update is called once per frame
     void Update()
@@ -89,7 +112,14 @@ public class ResoucesLoader : MonoSingleton<ResoucesLoader>
             ResourceLoadTask task = _reqBuffer[i];
             if (task.req == null)
             {
-                task.req = Resources.LoadAsync<UnityEngine.Object>(task.path);
+                if (task.type == null)
+                {
+                    task.req = Resources.LoadAsync<UnityEngine.Object>(task.path);
+                }
+                else
+                {
+                    task.req = Resources.LoadAsync(task.path, task.type);
+                }
             }
         }
     }

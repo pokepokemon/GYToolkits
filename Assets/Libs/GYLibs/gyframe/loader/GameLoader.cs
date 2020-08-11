@@ -28,6 +28,16 @@ public class GameLoader : MonoSingleton<GameLoader>
     }
 
     /// <summary>
+    /// 异步加载UnityEngine.Object
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="callback">Object,string</param>
+    public void LoadSprite(string path, UnityAction<UnityEngine.Object, string> callback)
+    {
+        ResoucesLoader.Instance.AddTaskSetType(path, callback, typeof(Sprite));
+    }
+
+    /// <summary>
     /// 同步加载UnityEngine.Object
     /// </summary>
     /// <param name="path"></param>

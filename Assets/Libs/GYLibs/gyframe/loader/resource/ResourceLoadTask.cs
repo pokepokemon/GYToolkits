@@ -6,10 +6,12 @@ using UnityEngine.Events;
 public class ResourceLoadTask
 {
     public string path;
-
+ 
     public Stack<UnityAction<Object, string>> callbackList = new Stack<UnityAction<Object, string>>();
 
     public ResourceRequest req;
+
+    public System.Type type;
 
     public void AddCallback(UnityAction<Object, string> callback)
     {
