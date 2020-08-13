@@ -41,7 +41,18 @@ public class SpriteAtlasUpdate : Editor
             SpriteAtlas sa = CheckCreateAtlas(dirInfo.Name);
             SpriteAtlasPackingSettings settings = sa.GetPackingSettings();
             settings.enableTightPacking = false;
+            settings.enableRotation = false;
+
+            TextureImporterPlatformSettings texSettings = sa.GetPlatformSettings(BuildTarget.iOS.ToString());
+            texSettings.overridden = true;
+            texSettings.format = TextureImporterFormat.ASTC_RGBA_4x4;
+            sa.SetPlatformSettings(texSettings);
+            texSettings = sa.GetPlatformSettings(BuildTarget.Android.ToString());
+            texSettings.format = TextureImporterFormat.ETC2_RGBA8;
+            sa.SetPlatformSettings(texSettings);
+
             sa.SetPackingSettings(settings);
+
             for (int i = 0; i < spts.Count; i++)
             {
                 if (!sa.CanBindTo(spts[i]))

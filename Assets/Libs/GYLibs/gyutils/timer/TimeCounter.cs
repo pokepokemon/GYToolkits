@@ -68,26 +68,38 @@ namespace GYLib.Utils
 
         public void Update()
         {
-            float deltaTime = (Time.timeSinceLevelLoad - _lastTime) * 1000;
-            double frameElapsedFloat = Math.Floor(deltaTime / _interval);
-            if (frameElapsedFloat > 10000)
+            if (_enableFillFrame)
             {
-                frameElapsedFloat = 10000;
-            }
-            int frameElapsed = Convert.ToInt32(frameElapsedFloat);
-            //做个限制避免大循环
-            if (_enableFillFrame && frameElapsed > 1 && frameElapsed < 100)
-            {
-                for (int i = 0; i < frameElapsed; i++)
+                float deltaTime = (Time.timeSinceLevelLoad - _lastTime) * 1000;
+                double frameElapsedFloat = Math.Floor(deltaTime / _interval);
+                if (frameElapsedFloat > 10000)
+                {
+                    frameElapsedFloat = 10000;
+                }
+                int frameElapsed = Convert.ToInt32(frameElapsedFloat);
+                //做个限制避免大循环
+                if (frameElapsed > 1 && frameElapsed < 100)
+                {
+                    for (int i = 0; i < frameElapsed; i++)
+                    {
+                        oneFrameWork();
+                    }
+                    _lastTime = Time.timeSinceLevelLoad;
+                }
+                else
                 {
                     oneFrameWork();
+                    _lastTime = Time.timeSinceLevelLoad;
                 }
-                _lastTime = Time.timeSinceLevelLoad;
             }
-            else if (frameElapsed >= 1)
+            else
             {
-                oneFrameWork();
-                _lastTime = Time.timeSinceLevelLoad;
+                float deltaTime = (Time.timeSinceLevelLoad - _lastTime) * 1000;
+                if (deltaTime >= _interval)
+                {
+                    oneFrameWork();
+                    _lastTime = Time.timeSinceLevelLoad;
+                }
             }
         }
 		

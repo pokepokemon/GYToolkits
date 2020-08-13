@@ -27,12 +27,21 @@ public class UIModelBlind : MonoBehaviour {
         ResetPos();
     }
 
+    private void OnEnable()
+    {
+        if (_cameraCache == null)
+        {
+            _cameraCache = Camera.main;
+            ResetPos();
+        }
+    }
+
     public bool firstCalc = false;
     float _lastX = 0;
     float _lastY = 0;
 	// Update is called once per frame
 	void Update () {
-        if (modelTransform != null && screenUITransform != null && canvas != null)
+        if (modelTransform != null && screenUITransform != null && canvas != null && _cameraCache != null)
         {
             float scaleFactor = canvas.scaleFactor;
             Vector2 screentPosition = _cameraCache.WorldToScreenPoint(modelTransform.position);

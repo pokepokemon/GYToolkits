@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -181,8 +181,8 @@ namespace GYLib
         {
             if (obj is GameObject)
                 GameObject.Destroy(obj as GameObject);
-            if (obj is MonoBehaviour)
-                GameObject.Destroy((obj as MonoBehaviour).gameObject);
+            if (obj is Component)
+                GameObject.Destroy((obj as Component).gameObject);
         }
 
 #if UNITY_EDITOR
