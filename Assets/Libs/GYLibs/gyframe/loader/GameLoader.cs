@@ -24,7 +24,17 @@ public class GameLoader : MonoSingleton<GameLoader>
     /// <param name="callback">Object,string</param>
     public void LoadObject(string path, UnityAction<UnityEngine.Object, string> callback)
     {
-        ResoucesLoader.Instance.AddTask(path, callback);
+        ResourcesLoader.Instance.AddTask(path, callback);
+    }
+
+    /// <summary>
+    /// 异步加载UnityEngine.Object
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="callback">Object,string</param>
+    public void LoadObject(string path, Type type, UnityAction<UnityEngine.Object, string> callback)
+    {
+        ResourcesLoader.Instance.AddTaskSetType(path, callback, type);
     }
 
     /// <summary>
@@ -34,7 +44,7 @@ public class GameLoader : MonoSingleton<GameLoader>
     /// <param name="callback">Object,string</param>
     public void LoadSprite(string path, UnityAction<UnityEngine.Object, string> callback)
     {
-        ResoucesLoader.Instance.AddTaskSetType(path, callback, typeof(Sprite));
+        ResourcesLoader.Instance.AddTaskSetType(path, callback, typeof(Sprite));
     }
 
     /// <summary>
@@ -118,11 +128,19 @@ public class GameLoader : MonoSingleton<GameLoader>
     /// <returns></returns>
     public bool HasStartWithLoadingPath(string subStr, string ignoreStr = "")
     {
-        return ResoucesLoader.Instance.HasStartWithLoadingPath(subStr, ignoreStr);
+        return ResourcesLoader.Instance.HasStartWithLoadingPath(subStr, ignoreStr);
     }
 
-    public void Unload(GameObject asset)
+    public void Unload(UnityEngine.Object asset)
     {
 
+    }
+
+    public void Cancel(string path, Type type, UnityAction<UnityEngine.Object, string> callback)
+    {
+        if (ResourcesLoader.Instance != null)
+        {
+            ResourcesLoader.Instance.CancelCallback(path, type, callback);
+        }
     }
 }

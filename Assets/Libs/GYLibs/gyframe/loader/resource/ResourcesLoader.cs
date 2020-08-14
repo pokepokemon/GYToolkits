@@ -8,7 +8,7 @@ using System;
 /// <summary>
 /// 异步ResourceLoad加载器
 /// </summary>
-public class ResoucesLoader : MonoSingleton<ResoucesLoader>
+public class ResourcesLoader : MonoSingleton<ResourcesLoader>
 {
     private List<ResourceLoadTask> _reqList = new List<ResourceLoadTask>();
 
@@ -195,5 +195,19 @@ public class ResoucesLoader : MonoSingleton<ResoucesLoader>
             }
         }
         return false;
+    }
+
+    public void CancelCallback(string path, Type type, UnityAction<UnityEngine.Object, string> loadCallback)
+    {
+        int reqIndex = _reqList.FindIndex((x) => x.path == path && x.type == null);
+        if (reqIndex != -1)
+        {
+            ResourceLoadTask task = _reqList[reqIndex];
+            task.RemoveCallback(loadCallback);
+            if (task.IsCallbackEmpty() && !_reqBuffer.Contains(task))
+            {
+                _reqList.RemoveAt(reqIndex);
+            }
+        }
     }
 }
