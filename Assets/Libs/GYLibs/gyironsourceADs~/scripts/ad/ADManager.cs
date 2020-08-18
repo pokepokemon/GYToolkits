@@ -14,6 +14,7 @@ public class ADManager : MonoSingleton<ADManager>
     private List<UnityAction> _failActionList = new List<UnityAction>();
 
     private RewardADProxy _proxy;
+    private InterstitialADProxy _interstitialProxy;
 
     private bool _testMode = false;
 #if UNITY_ANDROID
@@ -30,12 +31,18 @@ public class ADManager : MonoSingleton<ADManager>
         isInited = true;
         return;
 #endif
-        IronSource.Agent.init(GAME_ID, IronSourceAdUnits.REWARDED_VIDEO);
+        IronSource.Agent.init(GAME_ID, IronSourceAdUnits.REWARDED_VIDEO, IronSourceAdUnits.INTERSTITIAL);
         IronSource.Agent.validateIntegration();
         Debug.Log("Init IronSource");
         isInited = true;
         Debug.Log("ADManager init!" + GAME_ID + "," + _testMode);
         CreateRewardAD();
+        GetInterstitial();
+    }
+
+    public void OnApplicationPause(bool isPaused)
+    {
+        IronSource.Agent.onApplicationPause(isPaused);
     }
 
     /// <summary>
@@ -168,9 +175,26 @@ public class ADManager : MonoSingleton<ADManager>
     }
 
     /// <summary>
+    /// 获取插页广告代理实例
+    /// </summary>
+    public InterstitialADProxy GetInterstitial()
+    {
+        if (_interstitialProxy == null)
+        {
+            GameObject go = new GameObject("InterstitialADProxy");
+            if (this.gameObject != null)
+            {
+                go.transform.SetParent(this.transform, false);
+                _interstitialProxy = go.AddComponent<InterstitialADProxy>();
+            }
+        }
+        return _interstitialProxy;
+    }
+
+    /// <summary>
     /// 展示插页广告
     /// </summary>
-    public void ShowInterstitial()
+    public void ShowInterstitial(string reason, string adUnit = null)
     {
         //_proxy.adUnit = "InterstitialVideo";
 
@@ -178,7 +202,7 @@ public class ADManager : MonoSingleton<ADManager>
         _actionList.Clear();
 
         ModuleEventManager.instance.dispatchEvent(new MEvent_ADStarted());
-        _proxy.SetPlayADDirty();
+        GetInterstitial().SetPlayDirty();
     }
 
     /// <summary>

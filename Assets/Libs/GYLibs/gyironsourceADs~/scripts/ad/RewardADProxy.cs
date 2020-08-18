@@ -146,7 +146,7 @@ public class RewardADProxy : MonoBehaviour
             _needPlayAD = false;
             _ADLoadingStartTime = -1;
             _isPlaying = true;
-            IronSource.Agent.showRewardedVideo(_adUnitId);
+            IronSource.Agent.showRewardedVideo();
         }
     }
 
