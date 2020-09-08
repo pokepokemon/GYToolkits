@@ -30,7 +30,11 @@ namespace GYLib
                         var go = new GameObject("SingleManager(auto create)");
                         _instance = go.AddComponent<SingletonManager>();
                     }
-                    DontDestroyOnLoad(_instance.gameObject);
+
+                    if (Application.isPlaying)
+                    {
+                        DontDestroyOnLoad(_instance.gameObject);
+                    }
                     //SingletonManager must be sit in Scene
                 }
                 return _instance;

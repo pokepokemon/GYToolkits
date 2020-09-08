@@ -7,7 +7,7 @@ namespace GYLib.Utils
 {
     public class TimeCounter: IFrame
     {
-		public delegate void TimeCounterDelegate();
+        public delegate void TimeCounterDelegate();
 		//这里要用毫秒
 		private float _interval = 1;
 		private TimeCounterDelegate _completeFunc;
@@ -17,12 +17,7 @@ namespace GYLib.Utils
 		private string _registerName;
 		private bool _isRunning;
 		private float _lastTime = 0;
-
-        /// <summary>
-        /// 当掉帧导致Update调用次数不足时,是否要补足调用次数
-        /// </summary>
-        private bool _enableFillFrame = false;
-
+        
         /// <summary>
         /// enter frame 一次性计数器
         /// </summary>
@@ -48,7 +43,7 @@ namespace GYLib.Utils
 		{
 			_isRunning = true;
 			EnterFrame.instance.add (this);
-			_lastTime = Time.timeSinceLevelLoad;
+			_lastTime = Time.time;
 		}
 
 		/**  停止记数  */
@@ -68,38 +63,11 @@ namespace GYLib.Utils
 
         public void Update()
         {
-            if (_enableFillFrame)
+            float deltaTime = (TimeUtil.shareTimeSincePlay - _lastTime) * 1000;
+            if (deltaTime >= _interval)
             {
-                float deltaTime = (Time.timeSinceLevelLoad - _lastTime) * 1000;
-                double frameElapsedFloat = Math.Floor(deltaTime / _interval);
-                if (frameElapsedFloat > 10000)
-                {
-                    frameElapsedFloat = 10000;
-                }
-                int frameElapsed = Convert.ToInt32(frameElapsedFloat);
-                //做个限制避免大循环
-                if (frameElapsed > 1 && frameElapsed < 100)
-                {
-                    for (int i = 0; i < frameElapsed; i++)
-                    {
-                        oneFrameWork();
-                    }
-                    _lastTime = Time.timeSinceLevelLoad;
-                }
-                else
-                {
-                    oneFrameWork();
-                    _lastTime = Time.timeSinceLevelLoad;
-                }
-            }
-            else
-            {
-                float deltaTime = (Time.timeSinceLevelLoad - _lastTime) * 1000;
-                if (deltaTime >= _interval)
-                {
-                    oneFrameWork();
-                    _lastTime = Time.timeSinceLevelLoad;
-                }
+                oneFrameWork();
+                _lastTime = TimeUtil.shareTimeSincePlay;
             }
         }
 		
@@ -116,7 +84,6 @@ namespace GYLib.Utils
 		{
 			this._autoRepeat = true;
 			this._repeatCounter = times;
-            this._enableFillFrame = enableFillFrame;
 			Start();
 		}
 

@@ -22,6 +22,8 @@ public class RectResizeRect : MonoBehaviour
 
     }
 
+    private float _lastResultW = -1f;
+    private float _lastResultH = -1f;
     // Update is called once per frame
     void Update()
     {
@@ -29,7 +31,12 @@ public class RectResizeRect : MonoBehaviour
         {
             float rsWidth = skipWidth ? myRect.sizeDelta.x : sourceRect.sizeDelta.x + expandWidth;
             float rsHeight = skipHeight ? myRect.sizeDelta.y : sourceRect.sizeDelta.y + expandHeight;
-            myRect.sizeDelta = new Vector2(rsWidth, rsHeight);
+            if (_lastResultW != rsWidth || _lastResultH != rsHeight)
+            {
+                myRect.sizeDelta = new Vector2(rsWidth, rsHeight);
+                _lastResultW = rsWidth;
+                _lastResultH = rsHeight;
+            }
         }
     }
 }

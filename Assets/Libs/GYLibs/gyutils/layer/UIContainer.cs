@@ -112,19 +112,24 @@ public class UIContainer
         {
             _worldList.Remove(go);
         }
-        _worldList.Add(go);
 
-        if (go.GetComponent<DestroyCallback>() == null)
-        {
-            go.AddComponent<DestroyCallback>().callback += delegate ()
-            {
-                RemoveWorld(go);
-            };
-        }
-        go.transform.SetParent(worldLayer, false);
 
         UIModelBlind blind = go.GetComponent<UIModelBlind>();
-        InsertToWorldSlibingIndex(blind);
+        if (blind != null)
+        {
+            _worldList.Add(go);
+
+            if (go.GetComponent<DestroyCallback>() == null)
+            {
+                go.AddComponent<DestroyCallback>().callback += delegate ()
+                {
+                    RemoveWorld(go);
+                };
+            }
+            go.transform.SetParent(worldLayer, false);
+
+            InsertToWorldSlibingIndex(blind);
+        }
     }
 
     private void InsertToWorldSlibingIndex(UIModelBlind blind)
@@ -136,12 +141,7 @@ public class UIContainer
                 _blindList.Remove(blind);
             }
             _blindList.Add(blind);
-            List<GameObject> noBlindList = _worldList.FindAll((ui) => ui.GetComponent<UIModelBlind>() == null);
             int index = 0;
-            for (int i = 0; i < noBlindList.Count; i++, index++)
-            {
-                noBlindList[i].transform.SetSiblingIndex(index);
-            }
             for (int i = 0; i < _blindList.Count; i++, index++)
             {
                 _blindList[i].transform.SetSiblingIndex(index);

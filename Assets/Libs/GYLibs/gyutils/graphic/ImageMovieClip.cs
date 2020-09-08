@@ -103,7 +103,7 @@ public class ImageMovieClip : MonoBehaviour
         if (CheckCanPlay())
         {
             _isPlaying = true;
-            _lastFrameTime = TimeUtil.shareRealTimeSincePlay;
+            _lastFrameTime = TimeUtil.shareTimeSincePlay;
             _currentFrame = 0;
             RefreshImage();
         }
@@ -137,7 +137,7 @@ public class ImageMovieClip : MonoBehaviour
         {
             _isPlaying = true;
             CheckPathChange();
-            _lastFrameTime = TimeUtil.shareRealTimeSincePlay - _lastFrameTime;
+            _lastFrameTime = TimeUtil.shareTimeSincePlay - _lastFrameTime;
         }
     }
 
@@ -148,7 +148,7 @@ public class ImageMovieClip : MonoBehaviour
         if (_isPlaying)
         {
             CheckPathChange();
-            float curTime = TimeUtil.shareRealTimeSincePlay;
+            float curTime = TimeUtil.shareTimeSincePlay;
             if (curTime == 0)
             {
                 return;

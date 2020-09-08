@@ -34,8 +34,11 @@ public class AssetsLoadGroup
             if (!_loadingSet.Contains(path))
             {
                 GameLoader.Instance.LoadObject(path, type, HandleLoadOne);
-                _loadingSet.Add(_pathList[i]);
-                _typeMap[path] = type;
+                _loadingSet.Add(path);
+                if (type != null)
+                {
+                    _typeMap[path] = type;
+                }
             }
         }
     }
@@ -76,7 +79,15 @@ public class AssetsLoadGroup
 
             foreach (var path in _loadingSet)
             {
-                GameLoader.Instance.Cancel(path, _typeMap[path], HandleLoadOne);
+                System.Type type;
+                if (_typeMap.TryGetValue(path, out type))
+                {
+                    GameLoader.Instance.Cancel(path, type, HandleLoadOne);
+                }
+                else
+                {
+                    GameLoader.Instance.Cancel(path, null, HandleLoadOne);
+                }
             }
             _typeMap.Clear();
             _loadingSet.Clear();

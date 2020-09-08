@@ -9,6 +9,7 @@ namespace GYLib.Utils
     /// </summary>
     public class BaseEnterFrameManager : IFrame
     {
+        public bool useRealTime = false;
         protected float _interval = 60;
         private float _lastTime = 0;
 		private bool _isStart = false;
@@ -17,7 +18,7 @@ namespace GYLib.Utils
         {
 			if (!_isStart) {
 				EnterFrame.instance.add (this);
-				_lastTime = Time.timeSinceLevelLoad;
+				_lastTime = useRealTime ? Time.realtimeSinceStartup : Time.time; 
 				_isStart = true;
 			}
         }
@@ -26,7 +27,7 @@ namespace GYLib.Utils
         {
             if (getTaskLength() != 0)
             {
-                float deltaTime = (Time.timeSinceLevelLoad - _lastTime) * 1000;
+                float deltaTime = (useRealTime ? Time.realtimeSinceStartup : Time.time - _lastTime) * 1000;
                 int frameElapsed = Convert.ToInt32(Math.Floor(deltaTime / _interval));
                 //做个限制避免大循环
                 if (frameElapsed > 1 && frameElapsed < 100)
@@ -35,12 +36,12 @@ namespace GYLib.Utils
                     {
                         oneFrameWork();
                     }
-                    _lastTime = Time.timeSinceLevelLoad;
+                    _lastTime = useRealTime ? Time.realtimeSinceStartup : Time.time;
                 }
                 else if (frameElapsed >= 1)
                 {
                     oneFrameWork();
-                    _lastTime = Time.timeSinceLevelLoad;
+                    _lastTime = useRealTime ? Time.realtimeSinceStartup : Time.time;
                 }
             }
 			checkUpdate ();

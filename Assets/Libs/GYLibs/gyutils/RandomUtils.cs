@@ -47,7 +47,7 @@ public class RandomUtils
         else if (range == 0)
             return 0;
         int tmpSeed = _seedDict[pool];
-        UnityEngine.Random.seed = tmpSeed;
+        UnityEngine.Random.InitState(tmpSeed);
         RandomSeed(pool);
         return Convert.ToInt32(UnityEngine.Random.Range(0, range)) * rate;
         /*
@@ -63,5 +63,24 @@ public class RandomUtils
         }
         
         return count;*/
+    }
+
+    /// <summary>
+    /// Random array index
+    /// </summary>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    public static int RandomIndex(int count)
+    {
+        if (count <= 1)
+        {
+            return 0;
+        }
+        int index = Mathf.FloorToInt(UnityEngine.Random.value * count);
+        if (index >= count || index < 0)
+        {
+            index = count - 1;
+        }
+        return index;
     }
 }

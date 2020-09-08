@@ -23,7 +23,7 @@ namespace GYLib.GYFrame
             Init();
         }
 
-        protected void RegistProcessor<T>() where T : Processor
+        public void RegistProcessor<T>() where T : Processor
         {
             Type tmpType = typeof(T);
             GameObject go = new GameObject(tmpType.ToString());
@@ -37,7 +37,7 @@ namespace GYLib.GYFrame
         {
         }
 
-        public Processor getProcessor(Type processor)
+        public Processor GetProcessor(Type processor)
         {
             Type key = processor;
             if (_dict.ContainsKey(key))

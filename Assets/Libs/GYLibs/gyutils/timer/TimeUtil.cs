@@ -8,9 +8,30 @@ namespace GYLib.Utils
         /// 供外部设置的时间数据
         /// Time.realtimeSinceStartup
         /// </summary>
+        public static float shareTimeSincePlay;
+
         public static float shareRealTimeSincePlay;
 
-        public static string FormatCountdownString(int seconds, string dayStr = "天")
+        /// <summary>
+        /// 格式化倒计时 (仅到分钟)
+        /// min:sec
+        /// </summary>
+        /// <param name="seconds"></param>
+        /// <returns></returns>
+        public static string FormatCountdownStringMin(int seconds)
+        {
+            if (seconds <= 0)
+            {
+                return "00:00";
+            }
+            int mins = (int)Math.Floor((float)(seconds) / 60);
+            int secs = seconds % 60;
+
+            string output = string.Format("{0:00}:{1:00}", mins, secs);
+            return output;
+        }
+
+        public static string FormatCountdownString(int seconds, string dayStr = "D")
         {
             if (seconds <= 0)
             {
@@ -35,7 +56,7 @@ namespace GYLib.Utils
             return output;
         }
 
-        public static string FormatCountdownString(long seconds, string dayStr = "天")
+        public static string FormatCountdownString(long seconds, string dayStr = "D")
         {
             if (seconds <= 0)
             {
@@ -60,7 +81,7 @@ namespace GYLib.Utils
             return output;
         }
 
-        public static string FormatCountdownString(uint seconds, string dayStr = "天")
+        public static string FormatCountdownString(uint seconds, string dayStr = "D")
         {
             if (seconds <= 0)
             {

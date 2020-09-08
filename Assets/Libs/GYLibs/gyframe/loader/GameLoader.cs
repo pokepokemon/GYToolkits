@@ -1,15 +1,18 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using GYLib;
 using System;
 using System.IO;
 using UnityEngine.Events;
+using GYLib.Utils;
 
 public class GameLoader : MonoSingleton<GameLoader>
 {
     public delegate void OnJsonConfigLoaded(string str);
     public delegate void OnCSVConfigLoaded(string[] arr);
     public delegate void OnSceneAsyncLoaded();
+
+    private GYEncryptCenter _center;
 
     // Use this for initialization
     void Start()
@@ -69,8 +72,11 @@ public class GameLoader : MonoSingleton<GameLoader>
     /// <param name="callback"></param>
     public void LoadConfig(string path, OnJsonConfigLoaded callback)
     {
+        if (FrameSettings.enable)
+        {
+            path = FrameSettings.ReplaceEncodePath(path);
+        }
         TextAsset obj = Resources.Load<TextAsset>(path) as TextAsset;
-
         if (!obj)
         {
             Debug.Log("error : " + path + " not found");
@@ -78,7 +84,17 @@ public class GameLoader : MonoSingleton<GameLoader>
         else
         {
             Debug.Log(path + " load completed");
-            callback(obj.text);
+
+            if (FrameSettings.enable)
+            {
+                _center = _center ?? new GYEncryptCenter();
+                string result = _center.Decode(obj.text);
+                callback(result);
+            }
+            else
+            {
+                callback(obj.text);
+            }
         }
     }
 
