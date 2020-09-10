@@ -76,19 +76,19 @@ public class RewardADProxy : MonoBehaviour
         string content = LocalizationConfig.Instance.GetStringWithSelf("广告加载中...");
         _maskID = CommonUI.ShowUIMask(content);
         
-        bool available = IronSource.Agent.isRewardedVideoAvailable();
-        if (_isLoadFail && !_isLoading)
+        bool available = IsADReady(_adUnitId);
+        if (_isLoadFail)
         {
             InitRewardAD();
         }
-        else if (!available && !_isLoading)
+        else if (!available)
         {
             InitRewardAD();
         }
     }
 
-    private const float _AD_RETRY_INTERVAL = 28f;
-    private const float _AD_LOADING_TIME_OUT = 18f;
+    private const float _AD_RETRY_INTERVAL = 20f;
+    private const float _AD_LOADING_TIME_OUT = 10f;
     private void Update()
     {
         //加载失败的情况每隔一段时间会开始加载
@@ -101,10 +101,8 @@ public class RewardADProxy : MonoBehaviour
                 InitRewardAD();
             }
         }
-
         
-        bool available = IronSource.Agent.isRewardedVideoAvailable();
-        if (_isLoading && available)
+        if (_isLoading && IsADReady(_adUnitId))
         {
             _isLoading = false;
             _isLoadFail = false;
@@ -139,7 +137,7 @@ public class RewardADProxy : MonoBehaviour
     /// </summary>
     private void StartCallPlayAD()
     {
-        bool available = IronSource.Agent.isRewardedVideoAvailable();
+        bool available = IsADReady(_adUnitId);
         Debug.Log("IsReady : " + available + ", adUnitId : " + _adUnitId);
         if (available && _needPlayAD)
         {
@@ -156,11 +154,11 @@ public class RewardADProxy : MonoBehaviour
     private void CheckCloseAD()
     {
         _isPlaying = false;
+        BgmManager.Instance.Resume();
         if (_maskID != -1)
         {
             CommonUI.CloseUIMask(_maskID);
             _maskID = -1;
-            BgmManager.Instance.Resume();
             if (OnPlayClosed != null)
             {
                 OnPlayClosed.Invoke();
@@ -173,7 +171,7 @@ public class RewardADProxy : MonoBehaviour
     /// </summary>
     public void InitRewardAD()
     {
-        bool available = IronSource.Agent.isRewardedVideoAvailable();
+        bool available = IsADReady(_adUnitId);
         if (!available)
         {
             Debug.Log("Start load AD : " + _adUnitId + ", IsReady : " + available);
@@ -228,12 +226,24 @@ public class RewardADProxy : MonoBehaviour
     /// <param name="placementId"></param>
     public void OnUnityAdsDidStart(string placementId)
     {
+        Debug.Log("AD Start play");
         if (placementId == _adUnitId)
         {
             BgmManager.Instance.Pause();
             _isLoading = false;
             _isLoadFail = false;
+            Time.timeScale = 0;
         }
+    }
+
+    /// <summary>
+    /// 广告就绪
+    /// </summary>
+    /// <param name="adUnit"></param>
+    /// <returns></returns>
+    public bool IsADReady(string adUnit)
+    {
+        return IronSource.Agent.isRewardedVideoAvailable();
     }
     
     /// <summary>
@@ -243,12 +253,13 @@ public class RewardADProxy : MonoBehaviour
     /// <param name="showResult"></param>
     public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
     {
+        Time.timeScale = 1;
+        CheckCloseAD();
         if (placementId == _adUnitId)
         {
             if (showResult == ShowResult.Finished)
             {
                 Debug.Log("Video completed - Offer a reward to the player");
-                CheckCloseAD();
                 OnPlayADEnd();
 
                 _ADLoadingStartTime = -1;
@@ -257,7 +268,6 @@ public class RewardADProxy : MonoBehaviour
             else if (showResult == ShowResult.Skipped)
             {
                 Debug.Log("Video completed - skip gain no reward");
-                CheckCloseAD();
                 _ADLoadingStartTime = -1;
                 InitRewardAD();
             }
@@ -265,20 +275,20 @@ public class RewardADProxy : MonoBehaviour
             {
                 _isLoadFail = true;
                 _isLoading = false;
-                _ADFailTime = TimeUtil.shareRealTimeSincePlay;
+                _ADFailTime = TimeUtil.shareTimeSincePlay;
                 _ADLoadingStartTime = -1;
 
                 if (_needPlayAD)
                 {
                     _needPlayAD = false;
-                    CheckCloseAD();
                     OnPlayFailed("Play AD failed");
                 }
+                InitRewardAD();
             }
             else if (showResult == ShowResult.Closed)
             {
-                CheckCloseAD();
                 _ADLoadingStartTime = -1;
+                InitRewardAD();
             }
         }
     }
@@ -379,12 +389,12 @@ public class RewardADProxy : MonoBehaviour
     //Invoked when the video ad starts playing. 
     void RewardedVideoAdStartedEvent()
     {
+        OnUnityAdsDidStart(_adUnitId);
     }
 
     //Invoked when the video ad finishes playing. 
     void RewardedVideoAdEndedEvent()
     {
-        OnUnityAdsDidFinish(_adUnitId, ShowResult.Closed);
     }
 
     #endregion

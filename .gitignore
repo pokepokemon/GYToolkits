@@ -7,3 +7,6 @@ Assembly-CSharp-Editor.csproj
 Assembly-CSharp.csproj
 .vs
 GYToolkits_New.sln
+Assets/Libs/GYLibs/gyutils/encrypt/GYEncryptCenter.cs
+Assets/Libs/GYLibs/gyutils/encrypt/GYEncryptCenter.cs.meta
+Assets/Libs/GYLibs/gyutils/encrypt.meta

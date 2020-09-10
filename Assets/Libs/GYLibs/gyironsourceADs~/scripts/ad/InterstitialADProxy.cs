@@ -54,7 +54,7 @@ public class InterstitialADProxy : MonoBehaviour
     private const float _CHECK_INTERVAL = 1f;
     private void Update()
     {
-        float curTime = TimeUtil.shareRealTimeSincePlay;
+        float curTime = TimeUtil.shareTimeSincePlay;
         if (curTime - _lastCheckTime > _CHECK_INTERVAL)
         {
             _lastCheckTime = curTime;
