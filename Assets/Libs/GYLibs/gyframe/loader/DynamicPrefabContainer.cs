@@ -75,6 +75,10 @@ public class DynamicPrefabContainer : MonoBehaviour
                 onCompleted(go);
             }
         }
+        else
+        {
+            GameLoader.Instance.Unload(obj);
+        }
     }
 
     /// <summary>

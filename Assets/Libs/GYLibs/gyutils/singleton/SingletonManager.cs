@@ -15,6 +15,8 @@ namespace GYLib
     {
         private static SingletonManager _instance = null;
 
+        private static bool quitting;
+
         /// <summary>
         ///  获取单例
         /// </summary>
@@ -25,16 +27,12 @@ namespace GYLib
                 if (_instance == null)
                 {
                     _instance = FindObjectOfType<SingletonManager>();
-                    if (_instance == null)
+                    if (_instance == null && !quitting)
                     {
                         var go = new GameObject("SingleManager(auto create)");
                         _instance = go.AddComponent<SingletonManager>();
                     }
-
-                    if (Application.isPlaying)
-                    {
-                        DontDestroyOnLoad(_instance.gameObject);
-                    }
+                    DontDestroyOnLoad(_instance.gameObject);
                     //SingletonManager must be sit in Scene
                 }
                 return _instance;
@@ -155,5 +153,10 @@ namespace GYLib
             }
         }
 
-  }   
+
+        void OnApplicationQuit()
+        {
+            quitting = true;
+        }
+    }   
 }

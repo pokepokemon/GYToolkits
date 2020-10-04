@@ -36,6 +36,11 @@ public class UIModelBlind : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// 若model的active发生变化,UI也跟随变化
+    /// </summary>
+    public bool activeFollowModel = false;
+
     public bool firstCalc = false;
     float _lastX = 0;
     float _lastY = 0;
@@ -43,6 +48,17 @@ public class UIModelBlind : MonoBehaviour {
 	void Update () {
         if (modelTransform != null && screenUITransform != null && canvas != null && _cameraCache != null)
         {
+            if (activeFollowModel)
+            {
+                if (!modelTransform.gameObject.activeInHierarchy && screenUITransform.gameObject.activeInHierarchy)
+                {
+                    screenUITransform.gameObject.SetActive(false);
+                }
+                else if (modelTransform.gameObject.activeInHierarchy && !screenUITransform.gameObject.activeInHierarchy)
+                {
+                    screenUITransform.gameObject.SetActive(true);
+                }
+            }
             float scaleFactor = canvas.scaleFactor;
             Vector2 screentPosition = _cameraCache.WorldToScreenPoint(modelTransform.position);
             screentPosition.x = screentPosition.x - Screen.width / 2 + offsetX * scaleFactor;
