@@ -82,6 +82,15 @@ public class DynamicPrefabContainer : MonoBehaviour
     }
 
     /// <summary>
+    /// 获取加载出的实例
+    /// </summary>
+    /// <returns></returns>
+    public GameObject GetObjInstance()
+    {
+        return _objInstance;
+    }
+
+    /// <summary>
     /// 停止加载
     /// </summary>
     public void StopLoading()

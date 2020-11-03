@@ -112,8 +112,7 @@ public class UIContainer
         {
             _worldList.Remove(go);
         }
-
-
+        
         UIModelBlind blind = go.GetComponent<UIModelBlind>();
         if (blind != null)
         {

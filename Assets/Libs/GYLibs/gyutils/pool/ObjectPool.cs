@@ -149,8 +149,8 @@ namespace GYLib
                     object obj = list.Dequeue();
                     if (obj is GameObject)
                         GameObject.Destroy(obj as GameObject);
-                    if (obj is Component)
-                        GameObject.Destroy((obj as Component).gameObject);
+                    if (obj is MonoBehaviour)
+                        GameObject.Destroy((obj as MonoBehaviour).gameObject);
                 }
                 _objectDict.Remove(key);
             }
@@ -181,8 +181,8 @@ namespace GYLib
         {
             if (obj is GameObject)
                 GameObject.Destroy(obj as GameObject);
-            if (obj is MonoBehaviour)
-                GameObject.Destroy((obj as MonoBehaviour).gameObject);
+            if (obj is Component)
+                GameObject.Destroy((obj as Component).gameObject);
         }
 
 #if UNITY_EDITOR

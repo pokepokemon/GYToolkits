@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using GYLib;
 using System;
@@ -131,8 +131,9 @@ public class GameLoader : MonoSingleton<GameLoader>
         {
             if (_tempSceneLoadedCallback != null)
             {
-                _tempSceneLoadedCallback.Invoke();
+                OnSceneAsyncLoaded tmpCall = _tempSceneLoadedCallback;
                 _tempSceneLoadedCallback = null;
+                tmpCall.Invoke();
             }
         }
     }

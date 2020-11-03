@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using UnityEditor;
 using System.IO;
@@ -21,7 +21,7 @@ public class CreateModuleEditor : EditorWindow
     string moduleName = "";
     string authorName = "";
 
-    static string RootPath = "/_script/modules/";
+    static string RootPath = "/_script/core/modules/";
 
     void OnGUI()
     {
@@ -62,7 +62,7 @@ public class CreateModuleEditor : EditorWindow
             Directory.CreateDirectory(Application.dataPath + RootPath + module + "/data");
 
         //2.read files
-        string sourcePath = Application.dataPath + "/Library/GYLibs/Editor/CreateModule/";
+        string sourcePath = Application.dataPath + "/3rdLibs/GYLibs/Editor/CreateModule/";
         string templateModuleName = "TemplateModule";
         string templateProcessor = "TemplateProcessor";
         string moduleContent;
@@ -96,7 +96,7 @@ public class CreateModuleEditor : EditorWindow
         writer.Flush();
         writer.Close();
 
-        writer = new StreamWriter(Application.dataPath + RootPath + module + "/" + module + "Prcessor.cs");
+        writer = new StreamWriter(Application.dataPath + RootPath + module + "/" + module + "Processor.cs");
         writer.Write(processorContent);
         writer.Flush();
         writer.Close();

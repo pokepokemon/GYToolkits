@@ -24,12 +24,19 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
     
     private bool _isRunning = false;
     private Camera _lastCamera = null;
+    private Transform _cameraRigid = null;
+    private Transform _tranControl = null;
+
     private InputStatus _status = InputStatus.None;
 
+    public bool touchEnable = true;
     public bool dragEnable = true;
 
     public Vector2 lastClickPos;
     public UnityAction<Vector2> onClick;
+
+    private Vector3 _originCameraPos;
+    private float _originCameraY;
 
     private float _scaleRate = 1;
 
@@ -51,6 +58,26 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
             if (_isRunning)
             {
                 _lastCamera = Camera.main;
+                if (_lastCamera != null)
+                {
+                    Transform tranParent = Camera.main.transform.parent;
+                    if (tranParent != null)
+                    {
+                        GameObject go = tranParent.gameObject;
+                        if (go.GetComponent<CameraRigid>() != null)
+                        {
+                            _cameraRigid = tranParent;
+                        }
+                    }
+                    _tranControl = _cameraRigid ?? _lastCamera.transform;
+                }
+                
+                if (!_lastCamera.orthographic)
+                {
+                    _originCameraPos = _lastCamera.transform.localPosition;
+
+                    _originCameraY = _lastCamera.transform.localPosition.y;
+                }
                 InitRange();
             }
         }
@@ -58,9 +85,9 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
 
     public void KillTween()
     {
-        if (_lastCamera != null && _lastCamera.gameObject != null)
+        if (_tranControl != null)
         {
-            _lastCamera.transform.DOKill();
+            _tranControl.DOKill();
         }
     }
     
@@ -126,7 +153,7 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
     /// <summary>
     /// 缓动时间
     /// </summary>
-    public float TWEEN_INTERVAL = 0.75f;
+    public float TWEEN_INTERVAL = 0.4f;
 
     /// <summary>
     /// 拖动移动比例
@@ -176,9 +203,9 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
             //Drag move
 
             Vector3 targetPt = new Vector3(
-                _lastCamera.transform.localPosition.x - deltaPosition.x,
-                _lastCamera.transform.localPosition.y,
-                _lastCamera.transform.localPosition.z - deltaPosition.y);
+                _tranControl.localPosition.x - deltaPosition.x,
+                _tranControl.localPosition.y,
+                _tranControl.localPosition.z - deltaPosition.y);
             if (_hasRange)
             {
                 targetPt.x = targetPt.x >= GetMaxX() ? GetMaxX() : targetPt.x;
@@ -189,7 +216,8 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
 
             if (dragEnable)
             {
-                _lastCamera.transform.DOLocalMove(targetPt, TWEEN_INTERVAL);
+                _tranControl.DOKill();
+                _tranControl.DOLocalMove(targetPt, TWEEN_INTERVAL);
             }
             _lastMousePt = Input.mousePosition;
             _moveDistance += Vector2.SqrMagnitude(deltaPosition);
@@ -203,7 +231,10 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
                 if (onClick != null)
                 {
                     lastClickPos = Input.mousePosition;
-                    onClick.Invoke(Input.mousePosition);
+                    if (touchEnable)
+                    {
+                        onClick.Invoke(Input.mousePosition);
+                    }
                 }
             }
             ResetStatus();
@@ -232,7 +263,6 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
                 _touchSingleId = touch.fingerId;
                 _lastDownTime = Time.realtimeSinceStartup;
                 _status = InputStatus.Drag;
-                InitRange();
                 KillTween();
             }
             else
@@ -262,7 +292,10 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
                 if (onClick != null)
                 {
                     lastClickPos = Input.mousePosition;
-                    onClick.Invoke(_lastTouchPosition);
+                    if (touchEnable)
+                    {
+                        onClick.Invoke(_lastTouchPosition);
+                    }
                 }
             }
             ResetStatus();
@@ -281,11 +314,10 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
                 Vector2 deltaPosition = touch.deltaPosition * linearFactor;
                 _moveDistance = _moveDistance + Vector2.SqrMagnitude(deltaPosition);
                 //Drag move
-                _lastCamera = Camera.main;
                 Vector3 targetPt = new Vector3(
-                    _lastCamera.transform.localPosition.x - deltaPosition.x,
-                    _lastCamera.transform.localPosition.y,
-                    _lastCamera.transform.localPosition.z - deltaPosition.y);
+                    _tranControl.localPosition.x - deltaPosition.x,
+                    _tranControl.localPosition.y,
+                    _tranControl.localPosition.z - deltaPosition.y);
                 if (_hasRange)
                 {
                     targetPt.x = targetPt.x >= GetMaxX() ? GetMaxX() : targetPt.x;
@@ -296,7 +328,8 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
     
                 if (dragEnable)
                 {
-                    _lastCamera.transform.DOLocalMove(targetPt, TWEEN_INTERVAL);
+                    _tranControl.DOKill();
+                    _tranControl.DOLocalMove(targetPt, TWEEN_INTERVAL);
                 }
                 _lastTouchPosition = touch.position;
             }
@@ -304,17 +337,75 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
     }
 #endif
 
+    public void ResetPos()
+    {
+        if (_tranControl != null && _lastCamera != null)
+        {
+            _tranControl.transform.DOKill();
+            _tranControl.transform.localEulerAngles = Vector3.zero;
+            _lastCamera.transform.DOKill();
+            if (!_lastCamera.orthographic)
+            {
+                _lastCamera.transform.localPosition = _originCameraPos;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 重置控制位置 Tween
+    /// </summary>
+    /// <param name="time"></param>
+    public void ResetPosWithTween(float time)
+    {
+        if (_tranControl != null && _lastCamera != null)
+        {
+            _tranControl.transform.DOKill();
+            _tranControl.transform.localEulerAngles = Vector3.zero;
+            _lastCamera.transform.DOKill();
+            if (!_lastCamera.orthographic)
+            {
+                _lastCamera.transform.DOLocalMove(_originCameraPos, time);
+            }
+        }
+    }
+
     public void MoveTo(float x, float y, float interval)
     {
         if (_lastCamera != null)
         {
-            Vector3 targetPt = new Vector3(x, _lastCamera.transform.localPosition.y, y);
+            Vector3 targetPt = new Vector3(x, _tranControl.localPosition.y, y);
             targetPt.x = targetPt.x >= GetMaxX() ? GetMaxX() : targetPt.x;
             targetPt.x = targetPt.x <= GetMinX() ? GetMinX() : targetPt.x;
             targetPt.z = targetPt.z >= GetMaxY() ? GetMaxY() : targetPt.z;
             targetPt.z = targetPt.z <= GetMinY() ? GetMinY() : targetPt.z;
-            _lastCamera.transform.DOKill();
-            _lastCamera.transform.DOLocalMove(targetPt, interval);
+            _tranControl.DOKill();
+            _tranControl.DOLocalMove(targetPt, interval);
+        }
+    }
+
+    public void ScaleTo(float targetScale, bool withTween = false, float tweenTime = 0.5f)
+    {
+        float oldScale = _scaleRate;
+        float resultRate = targetScale;
+        resultRate = resultRate > _lastCameraMaxScale ? _lastCameraMaxScale : resultRate;
+        resultRate = resultRate < _lastCameraMinScale ? _lastCameraMinScale : resultRate;
+        _scaleRate = resultRate;
+
+        if (_lastCamera.orthographic)
+        {
+            _lastCamera.orthographicSize = _scaleRate * _originCameraSize;
+        }
+        else
+        {
+            Vector3 pos = _originCameraPos * _scaleRate;
+            if (withTween)
+            {
+                _lastCamera.transform.DOLocalMove(pos, tweenTime);
+            }
+            else
+            {
+                _lastCamera.transform.localPosition = pos;
+            }
         }
     }
 
@@ -343,7 +434,7 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
     }
 
     private const float _SCALE_DISTANCE_INTERVAL = 10f;
-    private const float _SCALE_DISTANCE_FACTOR = 0.005f;
+    private const float _SCALE_DISTANCE_FACTOR = 0.015f;
     /// <summary>
     /// 两个手指缩放轮询
     /// </summary>
@@ -353,11 +444,12 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
         if (len == 1)
         {
             EnterDrag(false);
+            _lastDistance = 0;
         }
         else if (len == 2) 
         {
             float newDistance = Vector2.Distance(Input.touches[0].position, Input.touches[1].position);
-
+            
             if (_lastDistance == 0)
             {
                 _lastDistance = newDistance;
@@ -366,17 +458,27 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
 
             float deltaScaleRate = -(deltaDistance / _SCALE_DISTANCE_INTERVAL) * _SCALE_DISTANCE_FACTOR;
             //TO DO
+            float oldScale = _scaleRate;
             float resultRate = _scaleRate + deltaScaleRate;
             resultRate = resultRate > _lastCameraMaxScale ? _lastCameraMaxScale : resultRate;
             resultRate = resultRate < _lastCameraMinScale ? _lastCameraMinScale : resultRate;
             _scaleRate = resultRate;
-            
-            _lastCamera.orthographicSize = _scaleRate * _originCameraSize;
+
+            if (_lastCamera.orthographic)
+            {
+                _lastCamera.orthographicSize = _scaleRate * _originCameraSize;
+            }
+            else
+            {
+                Vector3 pos = _originCameraPos * _scaleRate;
+                _lastCamera.transform.DOLocalMove(pos, TWEEN_INTERVAL);
+            }
             _lastDistance = newDistance;
         }
         else
         {
             ResetStatus();
+            _lastDistance = 0;
         }
     }
 
@@ -385,7 +487,7 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
     /// </summary>
     private void InitRange()
     {
-        DragRange range = Camera.main.gameObject.GetComponent<DragRange>();
+        DragRange range = _lastCamera.gameObject.GetComponent<DragRange>();
         if (range != null)
         {
             _hasRange = true;
@@ -408,6 +510,7 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
             {
                 _scalePixelRate = 0;
             }
+            _scaleRate = 1;
         }
         else
         {
@@ -417,26 +520,25 @@ public class DragScreenInput : MonoSingleton<DragScreenInput>
 
     private float GetMaxX()
     {
-        return _lastCameraMaxX + (1 - _scaleRate) * _scalePixelRate;
+        return _lastCameraMaxX;
     }
 
     private float GetMinX()
     {
-        return _lastCameraMinX - (1 - _scaleRate) * _scalePixelRate;
+        return _lastCameraMinX;
     }
 
     private float GetMaxY()
     {
-
-        return _lastCameraMaxY + (1 - _scaleRate) * _scalePixelRate;
+        return _lastCameraMaxY;
     }
 
     private float GetMinY()
     {
-        return _lastCameraMinY - (1 - _scaleRate) * _scalePixelRate;
+        return _lastCameraMinY;
     }
 
-    public bool IsTouchUI()
+    private bool IsTouchUI()
     {
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
 

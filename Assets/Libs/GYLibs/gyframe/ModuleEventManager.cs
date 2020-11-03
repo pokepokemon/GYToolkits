@@ -45,6 +45,7 @@ namespace GYLib.GYFrame
         public void removeEvent(Type argClass, ModuleDelegate func)
         {
             Type key = argClass;
+            
             if (_dict.ContainsKey(key))
             {
                 _dict.Remove(key);

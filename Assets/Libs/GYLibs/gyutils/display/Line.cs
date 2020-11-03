@@ -263,19 +263,8 @@ namespace GYLib.Utils
             }
             if (needCut)
             {
-                if (double.IsNaN(newX) || double.IsNaN(newY) || double.IsInfinity(newX) || double.IsInfinity(newY))
-                {
-                    return NaN;
-                }
-                var decNewX = (decimal)newX;
-                var decNewY = (decimal)newY;
-                var decCurMinX = (decimal)curMinX;
-                var decCurMaxX = (decimal)curMaxX;
-                var decCurMinY = (decimal)curMinY;
-                var decCurMaxY = (decimal)curMaxY;
-
-                if (decNewX >= decCurMinX && decNewX <= decCurMaxX &&
-                    decNewY >= decCurMinY && decNewY <= decCurMaxY)
+                if (newX >= curMinX && newX <= curMaxX &&
+                    newY >= curMinY && newY <= curMaxY)
                 {
                     return new Vector2((float)newX, (float)newY);
                 }
