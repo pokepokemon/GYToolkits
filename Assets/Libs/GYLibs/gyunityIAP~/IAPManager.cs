@@ -6,9 +6,9 @@ using System;
 using UnityEngine.UI;
 using UnityEngine.Purchasing;
 using UnityEngine.Purchasing.Security;
-using UnityEngine.Store; // UnityChannel
 using GYLib;
 using UnityEngine.Events;
+
 
 /// <summary>
 /// Unity IAP Support Base on version 1.2.0
@@ -51,6 +51,16 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
     /// 服务器校验回调
     /// </summary>
     public UnityAction<IPurchaseReceipt> OnPurchaseValidate;
+
+    /// <summary>
+    /// 添加产品
+    /// </summary>
+    public UnityAction<ConfigurationBuilder> OnAddProductionList;
+
+    /// <summary>
+    /// 校验失败
+    /// </summary>
+    public UnityAction<Product> OnPurchaseValidateFail;
 
     // Unity IAP objects
     private IStoreController _controller;
@@ -103,6 +113,7 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
         {
             if (item.availableToPurchase)
             {
+                /*
                 Debug.Log(string.Join(" - ",
                     new[]
                     {
@@ -114,6 +125,7 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
                         item.transactionID,
                         item.receipt
                     }));
+                */
 #if INTERCEPT_PROMOTIONAL_PURCHASES
                 // Set all these products to be visible in the user's App Store according to Apple's Promotional IAP feature
                 // https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/StoreKitGuide/PromotingIn-AppPurchases/PromotingIn-AppPurchases.html
@@ -140,19 +152,20 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
     /// </summary>
     public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs e)
     {
-        Debug.Log("Purchase OK: " + e.purchasedProduct.definition.id);
-        Debug.Log("Receipt: " + e.purchasedProduct.receipt);
+        //Debug.Log("Purchase OK: " + e.purchasedProduct.definition.id);
+        //Debug.Log("Receipt: " + e.purchasedProduct.receipt);
 
         _lastTransactionID = e.purchasedProduct.transactionID;
 
 #if RECEIPT_VALIDATION // Local validation is available for GooglePlay, Apple, and UnityChannel stores
-        if (_isGooglePlayStoreSelected ||
+        if (validator != null &&
+            ( _isGooglePlayStoreSelected ||
             Application.platform == RuntimePlatform.IPhonePlayer ||
             Application.platform == RuntimePlatform.OSXPlayer ||
-            Application.platform == RuntimePlatform.tvOS) {
+            Application.platform == RuntimePlatform.tvOS)) {
             try {
                 var result = validator.Validate(e.purchasedProduct.receipt);
-                Debug.Log("Receipt is valid. Contents:");
+                //Debug.Log("Receipt is valid. Contents:");
                 foreach (IPurchaseReceipt productReceipt in result) {
                     Debug.Log(productReceipt.productID);
                     Debug.Log(productReceipt.purchaseDate);
@@ -163,6 +176,7 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
                         OnPurchaseValidate(productReceipt);
                     }
 
+                    /*
                     GooglePlayReceipt google = productReceipt as GooglePlayReceipt;
                     if (null != google) {
                         Debug.Log(google.purchaseState);
@@ -176,14 +190,23 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
                         Debug.Log(apple.cancellationDate);
                         Debug.Log(apple.quantity);
                     }
+                    */
 
                     // For improved security, consider comparing the signed
                     // IPurchaseReceipt.productId, IPurchaseReceipt.transactionID, and other data
                     // embedded in the signed receipt objects to the data which the game is using
                     // to make this purchase.
                 }
+
             } catch (IAPSecurityException ex) {
                 Debug.Log("Invalid receipt, not unlocking content. " + ex);
+
+                if (OnPurchaseValidateFail != null)
+                {
+                    OnPurchaseValidateFail(e.purchasedProduct);
+                }
+
+                _purchaseInProgress = false;
                 return PurchaseProcessingResult.Complete;
             }
         }
@@ -308,12 +331,14 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
         // iOS stores.
         // So on the Mac App store our products have different identifiers,
         // and we tell Unity IAP this by using the IDs class.
+        /*
         builder.AddProduct(PayIDs.NoAD, ProductType.NonConsumable, new IDs
             {
                 {"noad01", AppleAppStore.Name},
                 {"com.tan.tan.tun.noad", GooglePlay.Name },
             }
         );
+        */
     }
 
     /// <summary>
@@ -361,6 +386,10 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
             }
 
             AddCustomProduceList(builder);
+            if (OnAddProductionList != null)
+            {
+                OnAddProductionList(builder);
+            }
 
 #if INTERCEPT_PROMOTIONAL_PURCHASES
         // On iOS and tvOS we can intercept promotional purchases that come directly from the App Store.
@@ -371,8 +400,10 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
 
 #if RECEIPT_VALIDATION
             string appIdentifier = Application.identifier;
-            validator = new CrossPlatformValidator(GooglePlayTangle.Data(), AppleTangle.Data(),
-                UnityChannelTangle.Data(), appIdentifier);
+#if UNITY_ANDROID || UNITY_IOS
+            validator = new CrossPlatformValidator(GooglePlayTangle.Data(), AppleTangle.Data(), appIdentifier);
+#endif
+
 #endif
 
             Action initializeUnityIap = () =>
@@ -455,11 +486,13 @@ public class IAPManager : MonoSingleton<IAPManager>, IStoreListener
         //payload_dictionary["developerPayload"] = "Faked developer payload";
         //_controller.InitiatePurchase(_controller.products.WithID(productID), MiniJson.JsonEncode(payload_dictionary));
         //payload 是用于校验的
-        _controller.InitiatePurchase(product, "developerPayload");
+
         if (OnStartPurchaseCall != null)
         {
             OnStartPurchaseCall(product);
         }
+
+        _controller.InitiatePurchase(product, "developerPayload");
     }
 
     /// <summary>
