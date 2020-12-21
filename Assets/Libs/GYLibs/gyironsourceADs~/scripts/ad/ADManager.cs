@@ -21,7 +21,7 @@ namespace GYLib.AD
 
         private bool _testMode = false;
 #if UNITY_ANDROID
-        private const string GAME_ID = "d3821ecd";
+        private const string GAME_ID = "db2a5721";
 #elif UNITY_IPHONE
     private const string GAME_ID = "ca25958d";
 #else
@@ -69,18 +69,19 @@ namespace GYLib.AD
                 FinishPlayAD();
                 return;
 #else
-            if (PlayerData.Instance.isPayAD)
-            {
-                FinishPlayAD();
-            }
-            else
-            {
-                GameAnalytics.NewAdEvent(GAAdAction.Show, GAAdType.RewardedVideo, "IS", _rewardReason);
-                if (_proxy != null)
+                if (PlayerData.Instance.isPayAD)
                 {
-                    _proxy.SetPlayADDirty();
+                    FinishPlayAD();
                 }
-            }
+                else
+                {
+                    GAEventProxy.instance.ADPlayGlobalLevel(PlayerData.Instance.level);
+                    GAEventProxy.instance.ADShowReward(_rewardReason);
+                    if (_proxy != null)
+                    {
+                        _proxy.SetPlayADDirty();
+                    }
+                }
 #endif
             }
             else
@@ -107,12 +108,11 @@ namespace GYLib.AD
             if (!PlayerData.Instance.isPayAD)
             {
                 PlayerData.Instance.adPlayTimes++;
-#if !UNITY_EDITOR
-                if (!string.IsNullOrEmpty(_rewardReason))
+                GAEventProxy.instance.ADRewardReceive(_rewardReason);
+                if (PlayerData.Instance.adPlayTimes == 1)
                 {
-                    GameAnalytics.NewAdEvent(GAAdAction.RewardReceived, GAAdType.RewardedVideo, "IS", _rewardReason);
+                    GAEventProxy.instance.FirstPlayAD(_rewardReason);
                 }
-#endif
                 _rewardReason = null;
             }
         }
@@ -166,9 +166,8 @@ namespace GYLib.AD
                     _failActionList.Clear();
                 }
                 _actionList.Clear();
-#if !UNITY_EDITOR
-                GameAnalytics.NewAdEvent(GAAdAction.FailedShow, GAAdType.RewardedVideo, "IS", _rewardReason);
-#endif
+
+                GAEventProxy.instance.ADRewardFailToShow(_rewardReason, reason);
                 _rewardReason = null;
             },
             LocalizationConfig.Instance.GetStringWithSelf("重试"),
@@ -236,5 +235,17 @@ namespace GYLib.AD
         {
         }
 
+        /// <summary>
+        /// 广告是否准备好
+        /// </summary>
+        /// <returns></returns>
+        public bool RewardADIsReady()
+        {
+            if (_proxy != null && _proxy.IsADReady(_proxy.adUnit))
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

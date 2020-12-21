@@ -307,6 +307,10 @@ public class RewardADProxy : MonoBehaviour
                 }
             }
         }
+        get
+        {
+            return _adUnitId;
+        }
     }
 
     public enum ShowResult
