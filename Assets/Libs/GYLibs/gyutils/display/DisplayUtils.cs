@@ -65,7 +65,7 @@ namespace GYLib.Utils
         /// <returns></returns>
         public static string ToSIPrefix(double value, string unit = "")
         {
-            string[] superSuffix = new string[] { "K", "M", "G", "T", "P", "E", "Z", "Y", "B", "aa", "bb", "cc"};
+            string[] superSuffix = new string[] { "K", "M", "G", "T", "P", "E", "Z", "Y", "B", "aa", "bb", "cc", "dd", "ee"};
             string[] subSuffix = new string[] { "m", "u", "n", "p", "f", "a" };
             double v = value;
             int exp = 0;
@@ -154,6 +154,46 @@ namespace GYLib.Utils
             Vector2 pixelPivot = image.sprite.pivot;
             Vector2 percentPivot = new Vector2(pixelPivot.x / size.x, pixelPivot.y / size.y);
             image.rectTransform.pivot = percentPivot;
+        }
+
+        /// <summary>
+        /// 根据模型转换UI坐标
+        /// </summary>
+        /// <param name="canvas"></param>
+        /// <param name="modelTransform"></param>
+        /// <param name="cam"></param>
+        /// <param name="offsetX"></param>
+        /// <param name="offsetY"></param>
+        /// <returns></returns>
+        public static Vector2 GetUIPosFromModelPos(Canvas canvas, Transform modelTransform, Camera cam, float offsetX = 0, float offsetY = 0)
+        {
+            float scaleFactor = canvas.scaleFactor;
+            Vector2 screentPosition = cam.WorldToScreenPoint(modelTransform.position);
+            screentPosition.x = screentPosition.x - Screen.width / 2 + offsetX * scaleFactor;
+            screentPosition.y = screentPosition.y - Screen.height / 2 + offsetY * scaleFactor;
+
+            Vector2 convertPos = new Vector2(screentPosition.x / scaleFactor, screentPosition.y / scaleFactor); 
+            return convertPos;
+        }
+
+        /// <summary>
+        /// 根据世界转换UI坐标
+        /// </summary>
+        /// <param name="canvas"></param>
+        /// <param name="worldPos"></param>
+        /// <param name="cam"></param>
+        /// <param name="offsetX"></param>
+        /// <param name="offsetY"></param>
+        /// <returns></returns>
+        public static Vector2 GetUIPosFromWorldPos(Canvas canvas, Vector3 worldPos, Camera cam, float offsetX = 0, float offsetY = 0)
+        {
+            float scaleFactor = canvas.scaleFactor;
+            Vector2 screentPosition = cam.WorldToScreenPoint(worldPos);
+            screentPosition.x = screentPosition.x - Screen.width / 2 + offsetX * scaleFactor;
+            screentPosition.y = screentPosition.y - Screen.height / 2 + offsetY * scaleFactor;
+
+            Vector2 convertPos = new Vector2(screentPosition.x / scaleFactor, screentPosition.y / scaleFactor);
+            return convertPos;
         }
     }
 }

@@ -53,7 +53,7 @@ namespace GYLib
                 if (obj is GameObject)
                 {
                     Transform trans = (obj as GameObject).transform;
-                    trans.SetParent(this.transform);
+                    trans.SetParent(this.transform, false);
                     trans.localPosition = Vector3.zero;
                 }
             }
@@ -64,7 +64,7 @@ namespace GYLib
                 if (obj is Component)
                 {
                     Transform trans = (obj as Component).transform;
-                    trans.SetParent(this.transform);
+                    trans.SetParent(this.transform, false);
                     trans.localPosition = Vector3.zero;
                 }
             }

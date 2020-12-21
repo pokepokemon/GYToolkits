@@ -116,16 +116,28 @@ namespace GYLib
 
         private void ReCalcVolumn()
         {
-            int totalCount = 0;
-            for (int i = 0; i < _audioSouces.Count; i++)
-            {
-                totalCount += _audioSouces[i].source.isPlaying ? 1 : 0;
-            }
-            float resultVolumn = Mathf.Max(1 + additionFactor * totalCount, minVolumn);
+            float resultVolumn = GetResultVolumn(true);
             for (int i = 0; i < _audioSouces.Count; i++)
             {
                 _audioSouces[i].source.volume = resultVolumn * _totalVolumn;
             }
+        }
+
+        /// <summary>
+        /// 获取当前音量
+        /// </summary>
+        /// <returns></returns>
+        public float GetResultVolumn(bool withCount)
+        {
+            int totalCount = 0;
+            if (withCount)
+            {
+                for (int i = 0; i < _audioSouces.Count; i++)
+                {
+                    totalCount += _audioSouces[i].source.isPlaying ? 1 : 0;
+                }
+            }
+            return Mathf.Max(1 + additionFactor * totalCount, minVolumn);
         }
 
         public void ClearAll()

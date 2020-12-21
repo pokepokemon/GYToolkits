@@ -96,12 +96,15 @@ public class UIContainer
         go.transform.SetParent(loadingLayer, false);
     }
 
-    public void RemoveLoading(GameObject go)
+    public void RemoveLoading(GameObject go, bool needDestroy = true)
     {
         if (_loadingList.Contains(go))
         {
             _loadingList.Remove(go);
-            GameObject.Destroy(go);
+            if (needDestroy)
+            {
+                GameObject.Destroy(go);
+            }
         }
     }
 

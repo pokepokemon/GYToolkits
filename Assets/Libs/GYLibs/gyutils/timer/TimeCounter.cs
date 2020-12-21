@@ -66,8 +66,8 @@ namespace GYLib.Utils
             float deltaTime = (TimeUtil.shareTimeSincePlay - _lastTime) * 1000;
             if (deltaTime >= _interval)
             {
-                oneFrameWork();
                 _lastTime = TimeUtil.shareTimeSincePlay;
+                oneFrameWork();
             }
         }
 		
