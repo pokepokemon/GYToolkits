@@ -150,6 +150,10 @@ namespace GYLib.Utils
                                 curNode = cacheNode;
                             }
                         }
+                        else
+                        {
+                            break;
+                        }
                         tmpTf = tmpTf.parent;
                         //not sync with curNode
                         curInstanceId = tmpTf.GetInstanceID();
