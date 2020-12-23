@@ -3,6 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Events;
 
+/// <summary>
+/// 批量加载资源的管理器
+/// 不建议使用池,避免异步残留回调问题
+/// </summary>
 public class AssetsLoadGroup
 {
     public Dictionary<string, UnityEngine.Object> assetDict = new Dictionary<string, Object>();
@@ -30,7 +34,7 @@ public class AssetsLoadGroup
         for (int i = 0; i < _pathList.Count; i++)
         {
             string path = _pathList[i];
-            System.Type type = _typeList[i];
+            System.Type type = _typeList == null ? null : _typeList[i];
             if (!_loadingSet.Contains(path))
             {
                 GameLoader.Instance.LoadObject(path, type, HandleLoadOne);

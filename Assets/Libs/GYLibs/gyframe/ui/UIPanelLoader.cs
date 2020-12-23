@@ -42,7 +42,7 @@ public class UIPanelLoader
     /// 开始加载
     /// </summary>
     /// <returns></returns>
-    private UIPanelLoader StartLoading()
+    public UIPanelLoader StartLoading()
     {
         List<string> pathList = new List<string>();
         List<System.Type> typeList = null;
@@ -84,6 +84,7 @@ public class UIPanelLoader
                 OnBeforeLoad(this);
             }
             loadGroup.OnCompleted = OnGroupLoadCompleted;
+            loadGroup.StartLoad();
         }
         return this;
     }
