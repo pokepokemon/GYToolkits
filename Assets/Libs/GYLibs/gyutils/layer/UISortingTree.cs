@@ -129,12 +129,17 @@ namespace GYLib.Utils
                 int curInstanceId = tmpTf.GetInstanceID();
                 if (!_cacheHashMap.Contains(curInstanceId))
                 {
+                    float order = 0;
                     while (tmpTf.parent != null)
                     {
                         //Already set
                         if (!_cacheHashMap.Contains(curInstanceId))
                         {
                             int parentId = tmpTf.parent.GetInstanceID();
+                            
+                            int tfIndex = tmpTf.GetSiblingIndex();
+                            int tfTotalCount = tmpTf.parent.childCount;
+                            order += (float)tfIndex / tfTotalCount;
 
                             UISortingTreeNode cacheNode;
                             if (_cacheMap.TryGetValue(parentId, out cacheNode))
@@ -143,8 +148,7 @@ namespace GYLib.Utils
                                 cacheNode.children.Add(curNode);
                                 //mask as done
                                 _cacheHashMap.Add(curNode.instanceID);
-                                int tfIndex = tmpTf.GetSiblingIndex();
-                                curNode.treeOrder = tfIndex;
+                                curNode.treeOrder = order;
 
                                 //replace
                                 curNode = cacheNode;
@@ -154,6 +158,8 @@ namespace GYLib.Utils
                         {
                             break;
                         }
+
+                        order *= 0.1f;
                         tmpTf = tmpTf.parent;
                         //not sync with curNode
                         curInstanceId = tmpTf.GetInstanceID();
@@ -211,7 +217,7 @@ namespace GYLib.Utils
             public UISortingTreeNode parent;
 
             //order in same tree parent (not unity transform's parent)
-            public int treeOrder;
+            public float treeOrder;
             public int renderOrder;
 
             public UISortingTreeNode()
@@ -261,7 +267,19 @@ namespace GYLib.Utils
 
             private int SortFunction(UISortingTreeNode a, UISortingTreeNode b)
             {
-                return a.treeOrder - b.treeOrder;
+                float result =  a.treeOrder - b.treeOrder;
+                if (result > 0)
+                {
+                    return 1;
+                }
+                else if (result == 0)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return -1;
+                }
             }
         }
     }
