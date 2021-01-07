@@ -97,4 +97,23 @@ public class AssetsLoadGroup
             _loadingSet.Clear();
         }
     }
+
+    /// <summary>
+    /// 获取加载结果
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public Object GetAsset(string path)
+    {
+        if (assetDict != null && assetDict.Count > 0)
+        {
+            Object obj;
+            if (assetDict.TryGetValue(path, out obj))
+            {
+                return obj;
+            }
+        }
+        Debug.LogError("Try load asset error : " + path);
+        return null;
+    }
 }

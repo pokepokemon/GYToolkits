@@ -18,6 +18,11 @@ public class UIPanelLoader
     public UnityAction<UIPanelLoader> OnBeforeLoad;
     public UnityAction<UIPanelLoader> OnLoadCompleted;
 
+    /// <summary>
+    /// 设置预加载数据组
+    /// </summary>
+    /// <param name="preloadAssets"></param>
+    /// <returns></returns>
     public UIPanelLoader SetPreloadAsset(PanelLoadData[] preloadAssets)
     {
         _preloadAssets = preloadAssets;
@@ -25,6 +30,11 @@ public class UIPanelLoader
         return this;
     }
 
+    /// <summary>
+    /// 设置预加载路径
+    /// </summary>
+    /// <param name="preloadPaths"></param>
+    /// <returns></returns>
     public UIPanelLoader SetPreloadPaths(string[] preloadPaths)
     {
         _assetPathList = preloadPaths;
@@ -32,6 +42,11 @@ public class UIPanelLoader
         return this;
     }
 
+    /// <summary>
+    /// 设置本体路径
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
     public UIPanelLoader SetPanelPath(string path)
     {
         panelPath = path;
@@ -42,7 +57,7 @@ public class UIPanelLoader
     /// 开始加载
     /// </summary>
     /// <returns></returns>
-    public UIPanelLoader StartLoading()
+    public virtual UIPanelLoader StartLoading()
     {
         List<string> pathList = new List<string>();
         List<System.Type> typeList = null;
@@ -89,7 +104,7 @@ public class UIPanelLoader
         return this;
     }
 
-    private void OnGroupLoadCompleted(AssetsLoadGroup group)
+    protected virtual void OnGroupLoadCompleted(AssetsLoadGroup group)
     {
         if (OnLoadCompleted != null)
         {
@@ -138,4 +153,5 @@ public class UIPanelLoader
         public string path;
         public System.Type type;
     }
+
 }

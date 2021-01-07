@@ -9,12 +9,24 @@ using UnityEngine.U2D;
 public class SpriteAtlasUpdate : Editor
 {
 #if UNITY_2017_3_OR_NEWER
-    const string SPRITE_FOLDER = "Resources/UI/RawRes/";
+    const string SPRITE_FOLDER = "UIRawRes/";
+    const string SPRITE_RESOURCES_FOLDER = "Resources/UI/RawRes/";
+
+    public static HashSet<string> ignoreSet = new HashSet<string>()
+    {
+        "atlas_title",
+    };
 
     [MenuItem("Tools/Update UIAtlas")]
     public static void CreateAtlasBySprite()
     {
-        string spriteSrcDir = Application.dataPath + "/" + SPRITE_FOLDER;
+        CreateInAtlasFolder(SPRITE_FOLDER);
+        CreateInAtlasFolder(SPRITE_RESOURCES_FOLDER);
+    }
+
+    private static void CreateInAtlasFolder(string parentFolder)
+    {
+        string spriteSrcDir = Application.dataPath + "/" + parentFolder;
         DirectoryInfo rootDirInfo = new DirectoryInfo(spriteSrcDir);
         spriteSrcDir = spriteSrcDir.Replace("\\", "/");
         //add sprite
@@ -23,6 +35,11 @@ public class SpriteAtlasUpdate : Editor
         foreach (DirectoryInfo dirInfo in rootDirInfo.GetDirectories())
         {
             string curFolderPath = dirInfo.FullName.Replace("\\", "/");
+            if (ignoreSet.Contains(dirInfo.Name))
+            {
+                continue;
+            }
+            string atlasName = dirInfo.Name + ".spriteatlas";
 
             spts.Clear();
             foreach (FileInfo pngFile in dirInfo.GetFiles("*.png", SearchOption.AllDirectories))
@@ -36,12 +53,27 @@ public class SpriteAtlasUpdate : Editor
                     spts.Add(sprite);
                 }
             }
-            string atlasName = dirInfo.Name + ".spriteatlas";
             Debug.Log("atlasName " + atlasName);
-            SpriteAtlas sa = CheckCreateAtlas(dirInfo.Name);
+            SpriteAtlas sa = CheckCreateAtlas(parentFolder, dirInfo.Name);
             SpriteAtlasPackingSettings settings = sa.GetPackingSettings();
             settings.enableTightPacking = false;
             settings.enableRotation = false;
+
+
+            HashSet<int> spriteSet = new HashSet<int>();
+            Sprite[] spriteArr = new Sprite[sa.spriteCount];
+            sa.GetSprites(spriteArr);
+            foreach (var sp in spriteArr)
+            {
+                spriteSet.Add(sp.GetInstanceID());
+            }
+            for (int i = 0; i < spts.Count; i++)
+            {
+                if (!spriteSet.Contains(spts[i].GetInstanceID()) && !sa.CanBindTo(spts[i]))
+                {
+                    sa.Add(new Object[] { spts[i] });
+                }
+            }
 
             TextureImporterPlatformSettings texSettings = sa.GetPlatformSettings(BuildTarget.iOS.ToString());
             texSettings.overridden = true;
@@ -50,41 +82,29 @@ public class SpriteAtlasUpdate : Editor
             texSettings = sa.GetPlatformSettings(BuildTarget.Android.ToString());
             texSettings.format = TextureImporterFormat.ETC2_RGBA8;
             sa.SetPlatformSettings(texSettings);
-
             sa.SetPackingSettings(settings);
 
-            for (int i = 0; i < spts.Count; i++)
-            {
-                if (!sa.CanBindTo(spts[i]))
-                {
-                    sa.Add(new Object[] { spts[i] });
-                }
-            }
             AssetDatabase.SaveAssets();
         }
 
         AssetDatabase.Refresh();
     }
 
-    private static SpriteAtlas CheckCreateAtlas(string atlasName)
+    private static SpriteAtlas CheckCreateAtlas(string parentFolder, string atlasName)
     {
         string path = Application.dataPath + "/" + SPRITE_FOLDER + atlasName + "/" + atlasName + ".spriteatlas";
         if (File.Exists(path))
         {
-            string assetPath = "Assets" + "/" + SPRITE_FOLDER + atlasName + "/" + atlasName + ".spriteatlas";
-            SpriteAtlas sa = AssetDatabase.LoadAssetAtPath<SpriteAtlas>(assetPath);
-            return sa;
+            File.Delete(path);
         }
-        else
-        {
-            return CreateAtlas(atlasName);
-        }
+
+        return CreateAtlas(parentFolder, atlasName);
     }
 
-    private static SpriteAtlas CreateAtlas(string atlasName)
+    private static SpriteAtlas CreateAtlas(string parentFolder, string atlasName)
     {
         SpriteAtlas sa = new SpriteAtlas();
-        string assetPath = "Assets" + "/" + SPRITE_FOLDER + atlasName + "/" + atlasName + ".spriteatlas";
+        string assetPath = "Assets" + "/" + parentFolder + atlasName + "/" + atlasName + ".spriteatlas";
         Debug.Log("create path : " + assetPath);
         AssetDatabase.CreateAsset(sa, assetPath);
         return sa;
