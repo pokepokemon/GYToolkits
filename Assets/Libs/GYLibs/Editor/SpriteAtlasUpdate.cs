@@ -11,6 +11,7 @@ public class SpriteAtlasUpdate : Editor
 #if UNITY_2017_3_OR_NEWER
     const string SPRITE_FOLDER = "UIRawRes/";
     const string SPRITE_SPUM_FOLDER = "SPUM/";
+    const string SPRITE_SPUM_RES_FOLDER = "Resources/SPUM/";
     const string SPRITE_RESOURCES_FOLDER = "Resources/UI/RawRes/";
 
     public static HashSet<string> ignoreSet = new HashSet<string>()
@@ -25,8 +26,9 @@ public class SpriteAtlasUpdate : Editor
         CreateInAtlasFolder(SPRITE_RESOURCES_FOLDER);
         CreateInOneFolder(SPRITE_SPUM_FOLDER, new HashSet<string>()
         {
-            "SPUM/Res",
+            "SPUM/Res/",
         });
+        CreateInOneFolder(SPRITE_SPUM_RES_FOLDER);
     }
 
 
@@ -46,11 +48,23 @@ public class SpriteAtlasUpdate : Editor
         foreach (FileInfo pngFile in dirInfo.GetFiles("*.png", SearchOption.AllDirectories))
         {
             string allPath = pngFile.FullName;
-            string folderChildPath = Path.GetDirectoryName(allPath);
-            folderChildPath = folderChildPath.Substring(allPath.IndexOf("Assets")).Replace("\\", "/");
-            if (ignoreSubSet != null && ignoreSubSet.Contains(folderChildPath))
+            string folderChildPath = Path.GetDirectoryName(allPath).Replace("\\", "/");
+            folderChildPath = folderChildPath.Substring(folderChildPath.IndexOf(parentFolder));
+            if (ignoreSubSet != null)
             {
-                continue;
+                bool isIgnore = false;
+                foreach (var setItem in ignoreSubSet)
+                {
+                    if (folderChildPath.IndexOf(setItem) != -1)
+                    {
+                        isIgnore = true;
+                        break;
+                    }
+                }
+                if (isIgnore)
+                {
+                    continue;
+                }
             }
             string assetPath = allPath.Substring(allPath.IndexOf("Assets")).Replace("\\", "/");
             assetPath.Remove(assetPath.LastIndexOf("."));
