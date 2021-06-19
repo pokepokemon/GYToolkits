@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -27,6 +27,7 @@ namespace GYLib.Utils
         private MinHeap<AStarNode> _openTree = new MinHeap<AStarNode>();
         private Stack _resultStack = new Stack();
         private List<AStarNode> _closeSet = new List<AStarNode>();
+        private Queue<AStarNode> _freePool = new Queue<AStarNode>();
 
         private int _sourceX;
         private int _sourceY;
@@ -62,12 +63,12 @@ namespace GYLib.Utils
             {
                 if (node != null)
                 {
-                    ObjectPool.Instance.Push(AStarNode.POOL_KEY, node);
+                    _freePool.Enqueue(node);
                 }
             }
             foreach (var node in _closeSet)
             {
-                ObjectPool.Instance.Push(AStarNode.POOL_KEY, node);
+                _freePool.Enqueue(node);
             }
             _openTree.Clear();
             _resultStack.Clear();
@@ -83,7 +84,6 @@ namespace GYLib.Utils
         public void SetMapStatus(int x, int y, byte status)
         {
             _map[x, y] = status;
-            ObjectPool.Instance.SetLimit(AStarNode.POOL_KEY, 150);
         }
 
         private List<Vector2Int> _resultBuffer = new List<Vector2Int>();
@@ -251,8 +251,12 @@ namespace GYLib.Utils
                     }
                 }
 
-                AStarNode newNode = ObjectPool.Instance.Get(AStarNode.POOL_KEY) as AStarNode;
-                if (newNode == null)
+                AStarNode newNode = null;
+                if (_freePool.Count > 0)
+                {
+                    newNode = _freePool.Dequeue();
+                }
+                else
                 {
                     newNode = new AStarNode();
                 }
