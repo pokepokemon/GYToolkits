@@ -25,7 +25,7 @@ namespace GYLib.Utils
         /// <param name="autoDispose">当达到间隔时自动调用dispose清除所有信息,调用时机为调用自定义间隔函数之后,默认为 false</param>
         /// <param name="func">到达间隔时自动调用的函数,默认 null</param>
         /// <param name="registerName">调用函数时应用的参数,默认 null</param>
-        public TimeCounter(float interval = 1f, bool autoDispose = false, TimeCounterDelegate func = null, string registerName = "")
+        public TimeCounter(float interval = 1f, bool autoDispose = false, TimeCounterDelegate func = null, string registerName = null)
 		{
 			_registerName = registerName;
 			_autoRepeat = false;

@@ -27,6 +27,8 @@ public class DynamicPrefabContainer : MonoBehaviour
     /// </summary>
     private GameObject _objInstance;
 
+    private GameObject _prefabTarget;
+
     public UnityAction<GameObject> onCompleted;
 
     private bool _isLoading = false;
@@ -46,6 +48,10 @@ public class DynamicPrefabContainer : MonoBehaviour
     public void StartLoading()
     {
         StopLoading();
+        if (_objInstance != null)
+        {
+            Destroy(_objInstance);
+        }
         if (!string.IsNullOrEmpty(loadPath) && _objInstance == null && !_isLoading)
         {
             _isLoading = true;
@@ -66,9 +72,11 @@ public class DynamicPrefabContainer : MonoBehaviour
             {
                 objLoading.SetActive(false);
             }
-            GameObject go = GameObject.Instantiate<GameObject>(obj as GameObject);
+            _prefabTarget = obj as GameObject;
+            GameObject go = GameObject.Instantiate<GameObject>(_prefabTarget);
             go.transform.SetParent(this.transform, false);
             _objInstance = go;
+            _objInstance.SetActive(true);
 
             if (onCompleted != null)
             {
@@ -79,8 +87,8 @@ public class DynamicPrefabContainer : MonoBehaviour
         {
             GameLoader.Instance.Unload(obj);
         }
-    }
-
+    }    
+    
     /// <summary>
     /// 获取加载出的实例
     /// </summary>
@@ -102,6 +110,20 @@ public class DynamicPrefabContainer : MonoBehaviour
             {
                 objLoading.SetActive(false);
             }
+        }
+    }
+
+    public bool IsLoading()
+    {
+        return _isLoading;
+    }
+
+    private void OnDestroy()
+    {
+        _isLoading = false;
+        if (GameLoader.Instance != null && _prefabTarget != null)
+        {
+            GameLoader.Instance.Unload(_prefabTarget);
         }
     }
 }

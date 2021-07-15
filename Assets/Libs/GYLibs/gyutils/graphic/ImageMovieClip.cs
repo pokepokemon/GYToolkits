@@ -66,10 +66,14 @@ public class ImageMovieClip : MonoBehaviour
     private float _lastFrameTime = -1;
 
     private string _currentBufferName;
+    private int _currentBufferStartFrame;
 
     public UnityAction OnLastFrame;
 
     private Dictionary<int, Sprite> _spriteBuffers = new Dictionary<int, Sprite>();
+
+    public delegate Sprite[] DelegateGetResource(string path);
+    public DelegateGetResource HandleGetResource;
 
     // Start is called before the first frame update
     void Start()
@@ -241,10 +245,11 @@ public class ImageMovieClip : MonoBehaviour
     /// </summary>
     private void CheckPathChange()
     {
-        if (_currentBufferName != sheetPath)
+        if (_currentBufferName != sheetPath || startNumber != _currentBufferStartFrame)
         {
             _spriteBuffers.Clear();
             _currentBufferName = sheetPath;
+            _currentBufferStartFrame = startNumber;
             if (resetWhenPathChange)
             {
                 Stop();
@@ -276,8 +281,16 @@ public class ImageMovieClip : MonoBehaviour
             {
                 string spritePath = fullPath.Remove(fullPath.LastIndexOf("/"));
                 string subPath = fullPath.Substring(fullPath.LastIndexOf("/") + 1);
+                Sprite[] iconsAtlas;
                 // Load all sprites in atlas
-                Sprite[] iconsAtlas = Resources.LoadAll<Sprite>(spritePath);
+                if (HandleGetResource != null)
+                {
+                    iconsAtlas = HandleGetResource(spritePath);
+                }
+                else
+                {
+                    iconsAtlas = Resources.LoadAll<Sprite>(spritePath);
+                }
                 // Get specific sprite
                 if (iconsAtlas != null)
                 {

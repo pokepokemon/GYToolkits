@@ -23,13 +23,16 @@ namespace GYLib
         /// </summary>
         /// <param name="key"></param>
         /// <param name="obj"></param>
-        public void Push(string key, object obj, bool skipSetParent = false)
+        public void Push(string key, object obj, bool skipSetParent = false, bool destroyCallRecycle = false)
         {
             if (string.IsNullOrEmpty(key) || obj == null)
             {
                 Debug.LogError("Don't try to push a null to pool!");
                 return;
             }
+
+            bool destoryObj = false;
+            // check limit
             Queue<object> list;
             if (!_objectDict.TryGetValue(key, out list))
             {
@@ -43,29 +46,37 @@ namespace GYLib
             if (list.Count > _limitDict[key])
             {
                 destoryObject(obj);
-                return;
+                destoryObj = true;
             }
 
-            list.Enqueue(obj);
 
-            if (!skipSetParent)
+            if (!destoryObj)
             {
-                if (obj is GameObject)
+                list.Enqueue(obj);
+                if (!skipSetParent)
                 {
-                    Transform trans = (obj as GameObject).transform;
-                    trans.SetParent(this.transform, false);
-                    trans.localPosition = Vector3.zero;
+                    if (obj is GameObject)
+                    {
+                        Transform trans = (obj as GameObject).transform;
+                        trans.SetParent(this.transform, false);
+                        trans.localPosition = Vector3.zero;
+                    }
                 }
             }
-            if (obj is IRecycle)
-                (obj as IRecycle).OnRecycle();
-            if (!skipSetParent)
+
+            if (!destoryObj || destroyCallRecycle)
             {
-                if (obj is Component)
+                // recycle call
+                if (obj is IRecycle)
+                    (obj as IRecycle).OnRecycle();
+                if (!skipSetParent)
                 {
-                    Transform trans = (obj as Component).transform;
-                    trans.SetParent(this.transform, false);
-                    trans.localPosition = Vector3.zero;
+                    if (obj is Component)
+                    {
+                        Transform trans = (obj as Component).transform;
+                        trans.SetParent(this.transform, false);
+                        trans.localPosition = Vector3.zero;
+                    }
                 }
             }
         }

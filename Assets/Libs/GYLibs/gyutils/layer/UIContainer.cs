@@ -5,7 +5,28 @@ using System;
 
 public class UIContainer
 {
-    public Canvas canvas;
+    /// <summary>
+    /// 当前相机
+    /// </summary>
+    public Camera cam;
+
+    private Canvas _canvas;
+    public Canvas canvas
+    {
+        get { return _canvas; }
+        set
+        {
+            _canvas = value;
+            if (_canvas != null)
+            {
+                if (_canvas.renderMode == RenderMode.ScreenSpaceCamera)
+                {
+                    cam = _canvas.worldCamera;
+                }
+            }
+        }
+    }
+
 
     private List<GameObject> _worldList = new List<GameObject>();
     private List<GameObject> _popUpList = new List<GameObject>();
@@ -25,7 +46,7 @@ public class UIContainer
         loadingLayer = loading.transform;
     }
 
-    public void AddPopUp(GameObject go)
+    public virtual void AddPopUp(GameObject go)
     {
         if (_popUpList.Contains(go))
         {
@@ -42,7 +63,7 @@ public class UIContainer
         go.transform.SetParent(popUpLayer, false);
     }
 
-    public void RemovePopUp(GameObject go, bool needDestroy = true)
+    public virtual void RemovePopUp(GameObject go, bool needDestroy = true)
     {
         if (_popUpList.Contains(go))
         {
@@ -52,7 +73,7 @@ public class UIContainer
         }
     }
 
-    public void AddMenu(GameObject go)
+    public virtual void AddMenu(GameObject go)
     {
         if (_menuList.Contains(go))
         {
@@ -69,7 +90,7 @@ public class UIContainer
         go.transform.SetParent(menuLayer, false);
     }
 
-    public void RemoveMenu(GameObject go)
+    public virtual void RemoveMenu(GameObject go)
     {
         if (_menuList.Contains(go))
         {
@@ -78,7 +99,7 @@ public class UIContainer
         }
     }
 
-    public void AddLoading(GameObject go)
+    public virtual void AddLoading(GameObject go)
     {
         if (_loadingList.Contains(go))
         {
@@ -96,7 +117,7 @@ public class UIContainer
         go.transform.SetParent(loadingLayer, false);
     }
 
-    public void RemoveLoading(GameObject go, bool needDestroy = true)
+    public virtual void RemoveLoading(GameObject go, bool needDestroy = true)
     {
         if (_loadingList.Contains(go))
         {
@@ -109,7 +130,7 @@ public class UIContainer
     }
 
     private List<UIModelBlind> _blindList = new List<UIModelBlind>();
-    public void AddWorld(GameObject go)
+    public virtual void AddWorld(GameObject go)
     {
         if (_worldList.Contains(go))
         {
@@ -151,7 +172,7 @@ public class UIContainer
         }
     }
 
-    public void RemoveWorld(GameObject go)
+    public virtual void RemoveWorld(GameObject go, bool skipDestory = false)
     {
         UIModelBlind blind = go.GetComponent<UIModelBlind>();
         if (blind != null)
@@ -161,7 +182,10 @@ public class UIContainer
         if (_worldList.Contains(go))
         {
             _worldList.Remove(go);
-            GameObject.Destroy(go);
+            if (!skipDestory)
+            {
+                GameObject.Destroy(go);
+            }
         }
     }
 

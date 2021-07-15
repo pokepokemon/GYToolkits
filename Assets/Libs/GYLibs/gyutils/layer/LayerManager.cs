@@ -7,10 +7,12 @@ namespace GYLib.Utils {
     {
         public static readonly LayerManager instance = new LayerManager();
 
+        public bool isInited = false;
+
         private GameObject _background;
         private GameObject _container;
         private GameObject _map;
-        private UIContainer _uiContainer;
+        private UISortingContainer _uiContainer;
         private DepthSort _sortManager;
         private List<SpriteRenderer> _tranforms = null;
 
@@ -18,23 +20,25 @@ namespace GYLib.Utils {
         {
             GameObject __bg = GameObject.Find("__Background");
             GameObject __map = GameObject.Find("__Map");
-            GameObject __contaienr = GameObject.Find("__Container");
+            GameObject __container = GameObject.Find("__Container");
             GameObject __uiContainer = GameObject.Find("__UIContainer");
             _background = __bg;
-            _container = __contaienr;
+            _container = __container;
             _map = __map;
             
             _tranforms = new List<SpriteRenderer>();
             _sortManager = new DepthSort(_tranforms);
-            UIContainer tmpContainer = new UIContainer(
+            UISortingContainer tmpContainer = new UISortingContainer(
                 DisplayUtils.GetChildByName(__uiContainer, "World"),
                 DisplayUtils.GetChildByName(__uiContainer, "Menu"), 
                 DisplayUtils.GetChildByName(__uiContainer, "PopUp"),
-                DisplayUtils.GetChildByName(__uiContainer, "Loading"));
+                DisplayUtils.GetChildByName(__uiContainer, "Loading"),
+                __uiContainer.GetComponent<UISortingTree>());
             tmpContainer.canvas = __uiContainer.GetComponent<Canvas>();
             _uiContainer = tmpContainer;
 
             _sortManager.Start();
+            isInited = true;
         }
 
         public GameObject background
@@ -52,7 +56,7 @@ namespace GYLib.Utils {
             get { return _map; }
         }
 
-        public UIContainer uiContainer
+        public UISortingContainer uiContainer
         {
             get { return _uiContainer; }
         }

@@ -66,6 +66,16 @@ public class GameLoader : MonoSingleton<GameLoader>
     }
 
     /// <summary>
+    /// 同步加载一串UnityEngine.Object[]
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public T[] LoadAllSpriteSync<T>(string path) where T : UnityEngine.Object
+    {
+        return Resources.LoadAll<T>(path);
+    }
+
+    /// <summary>
     /// 加载配置
     /// </summary>
     /// <param name="path"></param>

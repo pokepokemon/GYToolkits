@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace GYLib.Utils
 {
@@ -72,6 +73,13 @@ namespace GYLib.Utils
                 UISortingTreeNode node = CheckInCache(renderer.transform);
                 node.renderers = node.renderers ?? new List<Renderer>();
                 node.renderers.Add(renderer);
+            }
+
+            SortingGroup[] groupList = goRoot.GetComponentsInChildren<SortingGroup>(true);
+            foreach (SortingGroup group in groupList)
+            {
+                UISortingTreeNode node = CheckInCache(group.transform);
+                node.sortingGroup = group;
             }
 
             UISortingTreeNode root = CheckInCache(goRoot.transform);
@@ -212,6 +220,7 @@ namespace GYLib.Utils
             public Transform tf;
             public Canvas canvas;
             public List<Renderer> renderers;
+            public SortingGroup sortingGroup;
 
             public List<UISortingTreeNode> children;
             public UISortingTreeNode parent;
@@ -257,6 +266,10 @@ namespace GYLib.Utils
                     {
                         render.sortingOrder = renderOrder;
                     }
+                }
+                if (sortingGroup != null)
+                {
+                    sortingGroup.sortingOrder = renderOrder;
                 }
             }
 

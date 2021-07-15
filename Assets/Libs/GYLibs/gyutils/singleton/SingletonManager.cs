@@ -31,7 +31,10 @@ namespace GYLib
                     {
                         var go = new GameObject("SingleManager(auto create)");
                         _instance = go.AddComponent<SingletonManager>();
-                        DontDestroyOnLoad(_instance.gameObject);
+                        if (Application.isPlaying)
+                        {
+                            DontDestroyOnLoad(_instance.gameObject);
+                        }
                     }
                     //SingletonManager must be sit in Scene
                 }
@@ -139,20 +142,31 @@ namespace GYLib
             }
             else if(_instance!=this)
             {
-                foreach (KeyValuePair<string,object> keyValue in _instance._singletons)
+                foreach (KeyValuePair<string,object> keyValue in this._singletons)
                 {
-                    if (_singletons.ContainsKey(keyValue.Key) == false)
-                        _singletons.Add(keyValue.Key, keyValue.Value);
+                    if (_instance._singletons.ContainsKey(keyValue.Key) == false)
+                        _instance._singletons.Add(keyValue.Key, keyValue.Value);
                 }
-                foreach(KeyValuePair < string, MonoBehaviour> keyValue in _instance._monoSingletons)
+                foreach(KeyValuePair < string, MonoBehaviour> keyValue in this._monoSingletons)
                 {
-                    if (_monoSingletons.ContainsKey(keyValue.Key) == false)
-                        _monoSingletons.Add(keyValue.Key, keyValue.Value);
+                    if (_instance._monoSingletons.ContainsKey(keyValue.Key) == false)
+                        _instance._monoSingletons.Add(keyValue.Key, keyValue.Value);
                 }
-                _instance = this;
+                GameObject.Destroy(this.gameObject);
             }
         }
-
+        
+        public void RemoveOthersSingleton()
+        {
+            SingletonManager[] singleObjs = FindObjectsOfType<SingletonManager>();
+            for (int i = singleObjs.Length - 1; i >= 0; i--)
+            {
+                if (singleObjs[i] != _instance)
+                {
+                    GameObject.Destroy(singleObjs[i].gameObject);
+                }
+            }
+        }
 
         void OnApplicationQuit()
         {
