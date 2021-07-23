@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -16,6 +16,8 @@ public class SpriteAtlasUpdate : Editor
 
     public static HashSet<string> ignoreSet = new HashSet<string>()
     {
+        "Font",
+        "Texture",
         "atlas_title",
     };
 
@@ -24,10 +26,11 @@ public class SpriteAtlasUpdate : Editor
     {
         CreateInAtlasFolder(SPRITE_FOLDER);
         CreateInAtlasFolder(SPRITE_RESOURCES_FOLDER);
+        /*
         CreateInOneFolder(SPRITE_SPUM_FOLDER, new HashSet<string>()
         {
             "SPUM/Res/",
-        });
+        });*/
         CreateInOneFolder(SPRITE_SPUM_RES_FOLDER);
     }
 
@@ -68,10 +71,14 @@ public class SpriteAtlasUpdate : Editor
             }
             string assetPath = allPath.Substring(allPath.IndexOf("Assets")).Replace("\\", "/");
             assetPath.Remove(assetPath.LastIndexOf("."));
-            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
-            if (IsPackable(sprite))
+            Object[] objs = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            foreach (Object tmpObj in objs)
             {
-                spts.Add(sprite);
+                Sprite sprite = tmpObj as Sprite;
+                if (IsPackable(sprite))
+                {
+                    spts.Add(sprite);
+                }
             }
         }
         Debug.Log("atlasName " + atlasName);
@@ -79,7 +86,6 @@ public class SpriteAtlasUpdate : Editor
         SpriteAtlasPackingSettings settings = sa.GetPackingSettings();
         settings.enableTightPacking = false;
         settings.enableRotation = false;
-
 
         HashSet<int> spriteSet = new HashSet<int>();
         Sprite[] spriteArr = new Sprite[sa.spriteCount];
@@ -96,15 +102,15 @@ public class SpriteAtlasUpdate : Editor
             }
         }
 
-        TextureImporterPlatformSettings texSettings = sa.GetPlatformSettings(BuildTarget.iOS.ToString());
+        TextureImporterPlatformSettings texSettings = sa.GetPlatformSettings("iPhone");
         texSettings.overridden = true;
-        texSettings.format = TextureImporterFormat.ASTC_RGBA_4x4;
+        texSettings.format = TextureImporterFormat.ASTC_4x4;
         sa.SetPlatformSettings(texSettings);
-        texSettings = sa.GetPlatformSettings(BuildTarget.Android.ToString());
+        texSettings = sa.GetPlatformSettings("Android");
         texSettings.format = TextureImporterFormat.ETC2_RGBA8;
         sa.SetPlatformSettings(texSettings);
         sa.SetPackingSettings(settings);
-
+        
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }
@@ -116,6 +122,7 @@ public class SpriteAtlasUpdate : Editor
         {
             File.Delete(path);
         }
+        AssetDatabase.Refresh();
 
         SpriteAtlas sa = new SpriteAtlas();
         string assetPath = "Assets" + "/" + parentFolder + atlasName + ".spriteatlas";
@@ -150,18 +157,23 @@ public class SpriteAtlasUpdate : Editor
                 string allPath = pngFile.FullName;
                 string assetPath = allPath.Substring(allPath.IndexOf("Assets")).Replace("\\", "/");
                 assetPath.Remove(assetPath.LastIndexOf("."));
-                Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
-                if (IsPackable(sprite))
+                Object[] objs = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+                foreach (Object tmpObj in objs)
                 {
-                    spts.Add(sprite);
+                    Sprite sprite = tmpObj as Sprite;
+                    if (IsPackable(sprite))
+                    {
+                        spts.Add(sprite);
+                    }
                 }
             }
             Debug.Log("atlasName " + atlasName);
             SpriteAtlas sa = CheckCreateAtlas(parentFolder, dirInfo.Name);
             SpriteAtlasPackingSettings settings = sa.GetPackingSettings();
+
             settings.enableTightPacking = false;
             settings.enableRotation = false;
-
+            sa.SetPackingSettings(settings);
 
             HashSet<int> spriteSet = new HashSet<int>();
             Sprite[] spriteArr = new Sprite[sa.spriteCount];
@@ -177,16 +189,16 @@ public class SpriteAtlasUpdate : Editor
                     sa.Add(new Object[] { spts[i] });
                 }
             }
-
-            TextureImporterPlatformSettings texSettings = sa.GetPlatformSettings(BuildTarget.iOS.ToString());
+            
+            TextureImporterPlatformSettings texSettings = sa.GetPlatformSettings("iPhone");
             texSettings.overridden = true;
-            texSettings.format = TextureImporterFormat.ASTC_RGBA_4x4;
+            texSettings.format = TextureImporterFormat.ASTC_4x4;
             sa.SetPlatformSettings(texSettings);
-            texSettings = sa.GetPlatformSettings(BuildTarget.Android.ToString());
+            texSettings = sa.GetPlatformSettings("Android");
             texSettings.format = TextureImporterFormat.ETC2_RGBA8;
             sa.SetPlatformSettings(texSettings);
-            sa.SetPackingSettings(settings);
 
+            EditorUtility.SetDirty(sa);
             AssetDatabase.SaveAssets();
         }
 
@@ -216,7 +228,7 @@ public class SpriteAtlasUpdate : Editor
 
     static bool IsPackable(Object o)
     {
-        return o != null && (o.GetType() == typeof(Sprite) || 
+        return o != null && (o.GetType() == typeof(Sprite) ||
             o.GetType() == typeof(Texture2D) || 
             (o.GetType() == typeof(DefaultAsset) && ProjectWindowUtil.IsFolder(o.GetInstanceID()))
             );

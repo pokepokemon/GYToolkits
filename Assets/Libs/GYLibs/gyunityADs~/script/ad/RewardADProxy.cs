@@ -34,6 +34,8 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     /// </summary>
     private float _ADLoadingStartTime = -1;
 
+    private float _ADDirtyTime = -1;
+
     /// <summary>
     /// 播放标志位,为true时只要一加载完广告立刻播放
     /// </summary>
@@ -67,6 +69,10 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
     /// </summary>
     public void SetPlayADDirty()
     {
+        if (!_needPlayAD)
+        {
+            _ADDirtyTime = TimeUtil.shareRealTimeSincePlay;
+        }
         _needPlayAD = true;
         string content = LocalizationConfig.Instance.GetStringWithSelf("广告加载中...");
         _maskID = CommonUI.ShowUIMask(content);
@@ -82,8 +88,8 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         }
     }
 
-    private const float _AD_RETRY_INTERVAL = 28f;
-    private const float _AD_LOADING_TIME_OUT = 18f;
+    private const float _AD_RETRY_INTERVAL = 3f;
+    private const float _AD_LOADING_TIME_OUT = 5f;
     private void Update()
     {
         //加载失败的情况每隔一段时间会开始加载
@@ -109,19 +115,22 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         {
             StartCallPlayAD();
         }
-        if (_isLoading && _ADLoadingStartTime != -1)
+        if (_isLoading && _ADDirtyTime != -1)
         {
             float curTime = TimeUtil.shareRealTimeSincePlay;
-            if (curTime - _ADLoadingStartTime > _AD_LOADING_TIME_OUT)
+            if (curTime - _ADDirtyTime > _AD_LOADING_TIME_OUT)
             {
                 CheckCloseAD();
                 if (_needPlayAD)
                 {
+                    Debug.Log("AD error in Update");
                     OnPlayFailed("Load AD time out");
                     _needPlayAD = false;
                 }
                 _isLoading = false;
                 _isLoadFail = true;
+                _ADFailTime = TimeUtil.shareRealTimeSincePlay;
+                _ADDirtyTime = -1;
                 _ADLoadingStartTime = -1;
             }
         }
@@ -136,6 +145,7 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         if (GetIsReady(_adUnitId) && _needPlayAD)
         {
             _needPlayAD = false;
+            _ADDirtyTime = -1;
             _ADLoadingStartTime = -1;
             _isPlaying = true;
             _adUnitIdReadyMap.Remove(_adUnitId);
@@ -175,6 +185,7 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         }
         else
         {
+            _isLoadFail = false;
             Debug.Log("Start but is ready : " + _adUnitId);
         }
     }
@@ -210,12 +221,12 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
         _ADLoadingStartTime = -1;
         _isLoading = false;
 
-        if (_needPlayAD || _isPlaying)
+        if (_isPlaying)
         {
-            _needPlayAD = false;
             _isPlaying = false;
             CheckCloseAD();
-            OnPlayFailed("load AD failed : " + message);
+            Debug.Log("AD error in OnUnityAdsDidError : " + message);
+            //OnPlayFailed("load AD failed : " + message);
         }
     }
 
@@ -269,11 +280,15 @@ public class RewardADProxy : MonoBehaviour, IUnityAdsListener
                 _isPlaying = false;
                 _ADFailTime = TimeUtil.shareRealTimeSincePlay;
                 _ADLoadingStartTime = -1;
+                _ADDirtyTime = -1;
 
                 if (_needPlayAD)
                 {
                     _needPlayAD = false;
+                    _ADDirtyTime = -1;
                     CheckCloseAD();
+
+                    Debug.Log("AD error in OnUnityAdsDidFinish");
                     OnPlayFailed("Play AD failed");
                 }
             }
