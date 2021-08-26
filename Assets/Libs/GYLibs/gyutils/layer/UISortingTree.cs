@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
@@ -13,6 +13,7 @@ namespace GYLib.Utils
         public GameObject goRoot;
         public int renderStep = 20;
         public bool updateRebuild = false;
+        public bool enableSpriteRenderer = false;
 
         public void Start()
         {
@@ -70,9 +71,12 @@ namespace GYLib.Utils
             Renderer[] rendererList = goRoot.GetComponentsInChildren<Renderer>(true);
             foreach (Renderer renderer in rendererList)
             {
-                UISortingTreeNode node = CheckInCache(renderer.transform);
-                node.renderers = node.renderers ?? new List<Renderer>();
-                node.renderers.Add(renderer);
+                if (!(renderer is SpriteRenderer) || enableSpriteRenderer)
+                {
+                    UISortingTreeNode node = CheckInCache(renderer.transform);
+                    node.renderers = node.renderers ?? new List<Renderer>();
+                    node.renderers.Add(renderer);
+                }
             }
 
             SortingGroup[] groupList = goRoot.GetComponentsInChildren<SortingGroup>(true);
@@ -239,6 +243,7 @@ namespace GYLib.Utils
                 treeOrder = 0;
                 tf = null;
                 renderOrder = 0;
+                sortingGroup = null;
             }
 
             public void Reset()
@@ -251,6 +256,7 @@ namespace GYLib.Utils
                 treeOrder = 0;
                 tf = null;
                 renderOrder = 0;
+                sortingGroup = null;
             }
 
             public void SetRenderOrder()
