@@ -84,6 +84,10 @@ namespace GYLib.Utils.ASEvents
 
         public void DispatchEvent(ASEvent e)
         {
+            if (e == null)
+            {
+                return;
+            }
             if (e.sender == null)
             {
                 e.__SetSender(this.sender);
