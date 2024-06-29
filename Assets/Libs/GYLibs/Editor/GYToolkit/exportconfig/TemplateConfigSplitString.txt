@@ -1,16 +1,4 @@
-if (!string.IsNullOrEmpty(data.{itemName}))
-{
-	strArr = data.{itemName}.Split(splitSymbol, StringSplitOptions.RemoveEmptyEntries);
-	count = strArr.Length;
-	data.{itemName}Arr = new {itemType}[count];
-	for (int j = 0; j < count; j++)
-	{
-	    var result = {itemAssign}
-	    data.{itemName}Arr[j] = result;
-	}
-}
-else
-{
-	data.{itemName}Arr = new {itemType}[0];
-}
+data.{itemName}Arr = string.IsNullOrEmpty(data.{itemName}) ? 
+    new {itemType}[0] : 
+    StringUtils.{itemAssign}(data.{itemName}, splitSymbol);
 data.{itemName} = null;

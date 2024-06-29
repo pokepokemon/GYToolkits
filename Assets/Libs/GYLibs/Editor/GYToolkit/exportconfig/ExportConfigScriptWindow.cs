@@ -170,6 +170,8 @@ namespace GYLibs.EditorExportConfig
             writer.Write(mainFile);
             writer.Flush();
             writer.Close();
+
+            AssetDatabase.Refresh();
         }
 
         /// <summary>
@@ -194,12 +196,12 @@ namespace GYLibs.EditorExportConfig
                     if (item.defineType == ItemDefineType.StringGroup)
                     {
                         itemContent = itemContent.Replace("{itemType}", "string");
-                        itemContent = itemContent.Replace("{itemAssign}", @"strArr[j];");
+                        itemContent = itemContent.Replace("{itemAssign}", @"GetArgument");
                     }
                     else if (item.defineType == ItemDefineType.IntGroup)
                     {
                         itemContent = itemContent.Replace("{itemType}", "int");
-                        itemContent = itemContent.Replace("{itemAssign}", @"Convert.ToInt32(strArr[j]);");
+                        itemContent = itemContent.Replace("{itemAssign}", @"GetIntArguments");
                     }
                     sb.Append(itemContent);
                     sb.AppendLine();
@@ -252,27 +254,27 @@ namespace GYLibs.EditorExportConfig
                 switch (defineType)
                 {
                     case ItemDefineType.Single:
-                        result = "public float " + name + ";";
+                        result = "\tpublic float " + name + ";";
                         break;
                     case ItemDefineType.Double:
-                        result = "public double " + name + ";";
+                        result = "\tpublic double " + name + ";";
                         break;
                     case ItemDefineType.Int32:
-                        result = "public int " + name + ";";
+                        result = "\tpublic int " + name + ";";
                         break;
                     case ItemDefineType.Int64:
-                        result = "public long " + name + ";";
+                        result = "\tpublic long " + name + ";";
                         break;
                     case ItemDefineType.String:
-                        result = "public string " + name + ";";
+                        result = "\tpublic string " + name + ";";
                         break;
                     case ItemDefineType.StringGroup:
-                        result = "public string " + name + ";\n";
-                        result += "public string[] " + name + "Arr;";
+                        result = "\tpublic string " + name + ";\n";
+                        result += "\tpublic string[] " + name + "Arr;";
                         break;
                     case ItemDefineType.IntGroup:
-                        result = "public string " + name + ";\n";
-                        result += "public int[] " + name + "Arr;";
+                        result = "\tpublic string " + name + ";\n";
+                        result += "\tpublic int[] " + name + "Arr;";
                         break;
                 }
                 return result;
