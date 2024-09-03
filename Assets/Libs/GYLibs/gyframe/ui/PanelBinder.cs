@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System;
 using UnityEngine.Events;
@@ -21,6 +21,11 @@ public class PanelBinder
     public Type panelType;
 
     public bool needMask = true;
+
+    /// <summary>
+    /// 业务层需要特殊处理时加入的配置
+    /// </summary>
+    public object specialData;
 
     public UnityAction<PanelBinder, ModuleEvent> onLoadedCall;
     public UnityAction<PanelBinder, ModuleEvent> onCloseCall;
@@ -77,6 +82,7 @@ public class PanelBinder
         {
             onLoadedCall.Invoke(this, _openEvt);
         }
+        UIProcessor.OnPostLoaded?.Invoke(this);
     }
 
     public void ClosePanel(ModuleEvent evt)

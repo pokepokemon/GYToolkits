@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -9,7 +9,8 @@ using UnityEngine.U2D;
 public class SpriteAtlasUpdate : Editor
 {
 #if UNITY_2017_3_OR_NEWER
-    const string SPRITE_FOLDER = "UIRawRes/";
+    const string SPRITE_MAP_FOLDER = "z_MapRawRes/";
+    const string SPRITE_FOLDER = "z_UIRawRes/";
     const string SPRITE_SPUM_FOLDER = "SPUM/";
     const string SPRITE_SPUM_RES_FOLDER = "Resources/SPUM/";
     const string SPRITE_RESOURCES_FOLDER = "Resources/UI/RawRes/";
@@ -21,9 +22,16 @@ public class SpriteAtlasUpdate : Editor
         "atlas_title",
     };
 
+    public static HashSet<string> bilinearSet = new HashSet<string>()
+    {
+        "atlas_nova",
+        "atlas_nova_battle",
+    };
+
     [MenuItem("Tools/Update UIAtlas")]
     public static void CreateAtlasBySprite()
     {
+        CreateInAtlasFolder(SPRITE_MAP_FOLDER);
         CreateInAtlasFolder(SPRITE_FOLDER);
         CreateInAtlasFolder(SPRITE_RESOURCES_FOLDER);
         /*
@@ -102,14 +110,18 @@ public class SpriteAtlasUpdate : Editor
             }
         }
 
-        TextureImporterPlatformSettings texSettings = sa.GetPlatformSettings("iPhone");
-        texSettings.overridden = true;
-        texSettings.format = TextureImporterFormat.ASTC_4x4;
-        sa.SetPlatformSettings(texSettings);
-        texSettings = sa.GetPlatformSettings("Android");
-        texSettings.format = TextureImporterFormat.ETC2_RGBA8;
-        sa.SetPlatformSettings(texSettings);
+        TextureImporterPlatformSettings texPSettings = sa.GetPlatformSettings("iPhone");
+        texPSettings.overridden = true;
+        texPSettings.format = TextureImporterFormat.ASTC_4x4;
+        sa.SetPlatformSettings(texPSettings);
+        texPSettings = sa.GetPlatformSettings("Android");
+        texPSettings.format = TextureImporterFormat.ETC2_RGBA8;
+        sa.SetPlatformSettings(texPSettings);
         sa.SetPackingSettings(settings);
+
+        var texSetting = sa.GetTextureSettings();
+        texSetting.filterMode = FilterMode.Point;
+        sa.SetTextureSettings(texSetting);
         
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -186,7 +198,7 @@ public class SpriteAtlasUpdate : Editor
             {
                 if (!spriteSet.Contains(spts[i].GetInstanceID()) && !sa.CanBindTo(spts[i]))
                 {
-                    sa.Add(new Object[] { spts[i] });
+                    sa.Add(new Object[] { spts[i] }); 
                 }
             }
             
@@ -197,6 +209,16 @@ public class SpriteAtlasUpdate : Editor
             texSettings = sa.GetPlatformSettings("Android");
             texSettings.format = TextureImporterFormat.ETC2_RGBA8;
             sa.SetPlatformSettings(texSettings);
+            var texSetting = sa.GetTextureSettings();
+            if (bilinearSet.Contains(dirInfo.Name))
+            {
+                texSetting.filterMode = FilterMode.Bilinear;
+            }
+            else
+            {
+                texSetting.filterMode = FilterMode.Point;
+            }
+            sa.SetTextureSettings(texSetting);
 
             EditorUtility.SetDirty(sa);
             AssetDatabase.SaveAssets();

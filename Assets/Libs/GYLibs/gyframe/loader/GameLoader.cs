@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using GYLib;
 using System;
@@ -159,6 +159,11 @@ public class GameLoader : MonoSingleton<GameLoader>
     }
 
     public void Unload(UnityEngine.Object asset)
+    {
+
+    }
+
+    public void UnloadByName(string assetName)
     {
 
     }

@@ -48,14 +48,6 @@ public class ImageLocalizeSwitcher : MonoBehaviour
         
         if (!this.spMap.ContainsKey(LanguageEnum.English)) this.spMap[LanguageEnum.English] = this.image.sprite;
         if (!this.spMap.ContainsKey(LanguageEnum.Chinese)) this.spMap[LanguageEnum.Chinese] = this.image.sprite;
-        if (!this.spMap.ContainsKey(LanguageEnum.Korean)) this.spMap[LanguageEnum.Korean] = this.image.sprite;
-        if (!this.spMap.ContainsKey(LanguageEnum.Japanese)) this.spMap[LanguageEnum.Japanese] = this.image.sprite;
-        if (!this.spMap.ContainsKey(LanguageEnum.Russian)) this.spMap[LanguageEnum.Russian] = this.image.sprite;
-        if (!this.spMap.ContainsKey(LanguageEnum.German)) this.spMap[LanguageEnum.German] = this.image.sprite;
-        if (!this.spMap.ContainsKey(LanguageEnum.Spanish)) this.spMap[LanguageEnum.Spanish] = this.image.sprite;
-        if (!this.spMap.ContainsKey(LanguageEnum.French)) this.spMap[LanguageEnum.French] = this.image.sprite;
-        if (!this.spMap.ContainsKey(LanguageEnum.Portuguese)) this.spMap[LanguageEnum.Portuguese] = this.image.sprite;
-        if (!this.spMap.ContainsKey(LanguageEnum.ChineseTraditional)) this.spMap[LanguageEnum.Portuguese] = this.image.sprite;
     }
 }
 

@@ -62,4 +62,31 @@ public class EditorCopyPath : Editor
         Debug.Log(path);
         GUIUtility.systemCopyBuffer = path;
     }
+
+    /// <summary>
+    /// 复制Hierarchy中的全路径
+    /// </summary>
+    [MenuItem("GameObject/Copy Path", priority = 999)]
+    public static void GameObjectCopyPath()
+    {
+        var transform = Selection.activeTransform;
+        if (null == transform)
+        {
+            return;
+        }
+        GUIUtility.systemCopyBuffer = GetTransformPath(transform);
+    }
+
+    public static string GetTransformPath(Transform transform)
+    {
+        if (null == transform)
+        {
+            return string.Empty;
+        }
+        if (null == transform.parent)
+        {
+            return transform.name;
+        }
+        return string.Format("{0}/{1}", GetTransformPath(transform.parent), transform.name);
+    }
 }

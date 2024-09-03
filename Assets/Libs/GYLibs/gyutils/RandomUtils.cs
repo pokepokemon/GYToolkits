@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -82,5 +82,60 @@ public class RandomUtils
             index = count - 1;
         }
         return index;
+    }
+
+    /// <summary>
+    /// 根据ID组的权重随机
+    /// </summary>
+    /// <param name="randomItemArr"></param>
+    /// <param name="randomProbArr"></param>
+    /// <returns></returns>
+    public static int? GetRandomItemInArray(int[] randomItemArr, int[] randomProbArr)
+    {
+        int? rsIndex = GetRandomIndexInArray(randomItemArr, randomProbArr);
+        if (rsIndex != null)
+        {
+            return randomItemArr[rsIndex.Value];
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+
+    /// <summary>
+    /// 根据ID组的权重随机索引
+    /// </summary>
+    /// <param name="randomItemArr"></param>
+    /// <param name="randomProbArr"></param>
+    /// <returns></returns>
+    public static int? GetRandomIndexInArray(int[] randomItemArr, int[] randomProbArr)
+    {
+        if (randomItemArr == null || randomProbArr == null ||
+            randomItemArr.Length == 0 ||
+            randomItemArr.Length > randomProbArr.Length)
+        {
+            return null;
+        }
+        long totalWeight = 0;
+        for (int i = 0; i < randomItemArr.Length; i++)
+        {
+            totalWeight += randomProbArr[i];
+        }
+
+        float resultWeight = totalWeight * UnityEngine.Random.value;
+        float curWeight = 0;
+        int rndWordIndex = randomItemArr.Length - 1;
+        for (int i = 0; i < randomItemArr.Length; i++)
+        {
+            curWeight += randomProbArr[i];
+            if (resultWeight <= curWeight)
+            {
+                rndWordIndex = i;
+                break;
+            }
+        }
+        return rndWordIndex;
     }
 }

@@ -1,10 +1,9 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Security.Cryptography;
 using System;
-using LitJson;
 using GYLib;
 using UnityEngine.Events;
 using GYLib.Utils;

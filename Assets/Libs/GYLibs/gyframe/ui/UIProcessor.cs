@@ -1,4 +1,4 @@
-﻿using GYLib.GYFrame;
+using GYLib.GYFrame;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +11,16 @@ public class UIProcessor : Processor
     private static Dictionary<string, PanelBinder> _closeEvtMap = new Dictionary<string, PanelBinder>();
     public static List<ModuleEvent> closeEvtList = new List<ModuleEvent>();
 
+    /// <summary>
+    /// 加载界面的GO结束后触发
+    /// </summary>
+    public static Action<PanelBinder> OnPostLoaded;
+
+    /// <summary>
+    /// 注册Binder后触发
+    /// </summary>
+    public static Action<PanelBinder> OnRegistBinder;
+
     public override void Init()
     {
         RegistBinder();
@@ -21,7 +31,8 @@ public class UIProcessor : Processor
     {
         _panelMap.Add(binder.name, binder);
         _openEvtMap.Add(binder.openEvt, binder);
-        _closeEvtMap.Add(binder.closeEvt, binder); 
+        _closeEvtMap.Add(binder.closeEvt, binder);
+        OnRegistBinder?.Invoke(binder);
     }
 
     public virtual void RegistBinder()

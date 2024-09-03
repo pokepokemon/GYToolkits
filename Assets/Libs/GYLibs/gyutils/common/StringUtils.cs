@@ -34,17 +34,18 @@ public class StringUtils
     /// </summary>
     /// <param name="effect"></param>
     /// <returns></returns>
-    public static int[] GetIntArguments(string effect, char[] splitKey)
+    public static int[] GetIntArguments(string effect, char[] splitKey, bool discardFirst = false)
     {
         if (!string.IsNullOrEmpty(effect))
         {
             string[] strArr = effect.Split(splitKey, StringSplitOptions.RemoveEmptyEntries);
-            if (strArr.Length > 1)
+            if (strArr.Length >= 1 || (discardFirst && strArr.Length > 1))
             {
-                int[] intArr = new int[strArr.Length - 1];
-                for (int i = 1; i < strArr.Length; i++)
+                int targetLen = discardFirst ? strArr.Length - 1 : strArr.Length;
+                int[] intArr = new int[targetLen];
+                for (int i = discardFirst ? 1 : 0; i < strArr.Length; i++)
                 {
-                    intArr[i - 1] = Convert.ToInt32(strArr[i]);
+                    intArr[discardFirst ? i - 1 : i] = Convert.ToInt32(strArr[i]);
                 }
                 return intArr;
             }
@@ -57,17 +58,18 @@ public class StringUtils
     /// </summary>
     /// <param name="effect"></param>
     /// <returns></returns>
-    public static float[] GetFloatArguments(string effect, char[] splitKey)
+    public static float[] GetFloatArguments(string effect, char[] splitKey, bool discardFirst = false)
     {
         if (!string.IsNullOrEmpty(effect))
         {
             string[] strArr = effect.Split(splitKey, StringSplitOptions.RemoveEmptyEntries);
-            if (strArr.Length > 1)
+            if (strArr.Length >= 1 || (discardFirst && strArr.Length > 1))
             {
-                float[] arr = new float[strArr.Length - 1];
-                for (int i = 1; i < strArr.Length; i++)
+                int targetLen = discardFirst ? strArr.Length - 1 : strArr.Length;
+                float[] arr = new float[targetLen];
+                for (int i = discardFirst ? 1 : 0; i < strArr.Length; i++)
                 {
-                    arr[i - 1] = Convert.ToSingle(strArr[i]);
+                    arr[discardFirst ? i - 1 : i] = Convert.ToSingle(strArr[i]);
                 }
                 return arr;
             }

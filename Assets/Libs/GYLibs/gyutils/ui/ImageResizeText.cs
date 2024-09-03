@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
@@ -26,10 +26,16 @@ public class ImageResizeText : MonoBehaviour
         {
             RectTransform rect = text.rectTransform;
             
-            float targetWidth = expandWidth != 0 ? rect.sizeDelta.x + expandWidth : image.rectTransform.sizeDelta.x;
-            float targetHeight = expandHeight != 0 ? rect.sizeDelta.y + expandHeight : image.rectTransform.sizeDelta.y;
-
-            image.rectTransform.sizeDelta = new Vector2(targetWidth, targetHeight);
+            float targetWidth = expandWidth != 0 ? rect.sizeDelta.x + expandWidth : image.rectTransform.rect.width;
+            float targetHeight = expandHeight != 0 ? rect.sizeDelta.y + expandHeight : image.rectTransform.rect.height;
+            if (targetHeight >= 0)
+            {
+                image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, targetHeight);
+            }
+            if (targetWidth >= 0)
+            {
+                image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, targetWidth);
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -110,7 +110,7 @@ namespace GYLib.Utils
 
                     int x = node.x;
                     int y = node.y;
-                    if (AddNodeToOpenSet(x + 1, y, node) 
+                    if (AddNodeToOpenSet(x + 1, y, node)
                         || AddNodeToOpenSet(x - 1, y, node)
                         || (isDir8 && AddNodeToOpenSet(x + 1, y + 1, node))
                         || (isDir8 && AddNodeToOpenSet(x + 1, y - 1, node))
@@ -130,7 +130,7 @@ namespace GYLib.Utils
                         return _resultBuffer.ToArray();
                     }
                 }
-                
+
             }
 
             return null;
@@ -145,7 +145,7 @@ namespace GYLib.Utils
         {
             if (_closeSet != null && _closeSet.Count > 0)
             {
-                _closeSet.Sort((x, y) => 
+                _closeSet.Sort((x, y) =>
                 ((x.x - _targetX) * (x.x - _targetX) + (x.y - _targetY) * (x.y - _targetY)) -
                 ((y.x - _targetX) * (y.x - _targetX) + (y.y - _targetY) * (y.y - _targetY)));
                 AStarNode tmpNode = null;
@@ -275,7 +275,7 @@ namespace GYLib.Utils
                     int deltaX = x - _targetX;
                     int deltaY = y - _targetY;
                     //Manhattan
-                    newNode.H = ((deltaX > 0 ? deltaX : -deltaX) + (deltaY > 0 ? deltaY : - deltaY)) * 10;
+                    newNode.H = ((deltaX > 0 ? deltaX : -deltaX) + (deltaY > 0 ? deltaY : -deltaY)) * 10;
 
                     bool hMove = x != srcNode.x;
                     bool vMove = y != srcNode.y;

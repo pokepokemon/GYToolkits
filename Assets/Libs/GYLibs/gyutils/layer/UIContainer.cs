@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -129,7 +129,7 @@ public class UIContainer
         }
     }
 
-    private List<UIModelBlind> _blindList = new List<UIModelBlind>();
+    private List<UIModelBind> _blindList = new List<UIModelBind>();
     public virtual void AddWorld(GameObject go)
     {
         if (_worldList.Contains(go))
@@ -137,7 +137,7 @@ public class UIContainer
             _worldList.Remove(go);
         }
         
-        UIModelBlind blind = go.GetComponent<UIModelBlind>();
+        UIModelBind blind = go.GetComponent<UIModelBind>();
         if (blind != null)
         {
             _worldList.Add(go);
@@ -155,7 +155,7 @@ public class UIContainer
         }
     }
 
-    private void InsertToWorldSlibingIndex(UIModelBlind blind)
+    private void InsertToWorldSlibingIndex(UIModelBind blind)
     {
         if (blind != null)
         {
@@ -174,7 +174,7 @@ public class UIContainer
 
     public virtual void RemoveWorld(GameObject go, bool skipDestory = false)
     {
-        UIModelBlind blind = go.GetComponent<UIModelBlind>();
+        UIModelBind blind = go.GetComponent<UIModelBind>();
         if (blind != null)
         {
             _blindList.Remove(blind);

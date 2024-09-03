@@ -4,6 +4,10 @@ namespace GYLib.Utils
 {
     public class TimeUtil
     {
+        public static long HOUR_SEC = 3600;
+        public static long MINUTE_SEC = 60;
+        public static long DAY_SEC = 86400;
+
         /// <summary>
         /// 供外部设置的时间数据
         /// Time.realtimeSinceStartup
@@ -11,6 +15,9 @@ namespace GYLib.Utils
         public static float shareTimeSincePlay;
 
         public static float shareRealTimeSincePlay;
+
+        public static long share2019TimeSec;
+        public static double share2019TimeSecDouble;
 
         /// <summary>
         /// 格式化倒计时 (仅到分钟)
@@ -152,6 +159,16 @@ namespace GYLib.Utils
         {
             TimeSpan ts = DateTime.UtcNow - new DateTime(2019, 1, 1, 0, 0, 0, 0);
             return Convert.ToInt64(ts.TotalSeconds);
+        }
+
+        /// <summary>
+        /// 2019年到现在的Utc时间(秒)
+        /// </summary>
+        /// <returns></returns>
+        public static double GetCurrentSec2019Double()
+        {
+            TimeSpan ts = DateTime.UtcNow - new DateTime(2019, 1, 1, 0, 0, 0, 0);
+            return ts.TotalSeconds;
         }
 
         public static DateTime GetDateBySec2019(long sec)

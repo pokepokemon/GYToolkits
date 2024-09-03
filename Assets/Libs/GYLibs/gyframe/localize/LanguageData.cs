@@ -19,30 +19,6 @@ namespace GYLib.GYFrame
             {
                 LanguageData.Language = LanguageEnum.Chinese;
             }
-            else if (LanguageData.Language == SystemLanguage.Korean.ToString())
-            {
-                LanguageData.Language = LanguageEnum.Korean;
-            }
-            else if (LanguageData.Language == SystemLanguage.Japanese.ToString())
-            {
-                LanguageData.Language = LanguageEnum.Japanese;
-            }
-            else if (LanguageData.Language == SystemLanguage.Russian.ToString())
-            {
-                LanguageData.Language = LanguageEnum.Russian;
-            }
-            else if (LanguageData.Language == SystemLanguage.Spanish.ToString())
-            {
-                LanguageData.Language = LanguageEnum.Spanish;
-            }
-            else if (LanguageData.Language == SystemLanguage.German.ToString())
-            {
-                LanguageData.Language = LanguageEnum.German;
-            }
-            else if (LanguageData.Language == SystemLanguage.French.ToString())
-            {
-                LanguageData.Language = LanguageEnum.French;
-            }
             else
             {
                 LanguageData.Language = LanguageEnum.English;

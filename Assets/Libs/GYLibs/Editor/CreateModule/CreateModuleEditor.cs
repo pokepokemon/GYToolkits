@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEditor;
 using System.IO;
@@ -21,7 +21,7 @@ public class CreateModuleEditor : EditorWindow
     string moduleName = "";
     string authorName = "";
 
-    static string RootPath = "/_script/core/modules/";
+    static string RootPath = "/_script/modules/";
 
     void OnGUI()
     {
@@ -54,12 +54,17 @@ public class CreateModuleEditor : EditorWindow
             return;
 
         //1.create folder
+
+        if (!Directory.Exists(Application.dataPath + RootPath + module))
+            Directory.CreateDirectory(Application.dataPath + RootPath + module);
+        /*
         if (!Directory.Exists(Application.dataPath + RootPath + module + "/ui"))
             Directory.CreateDirectory(Application.dataPath + RootPath + module + "/ui");
         if (!Directory.Exists(Application.dataPath + RootPath + module + "/event"))
             Directory.CreateDirectory(Application.dataPath + RootPath + module + "/event");
         if (!Directory.Exists(Application.dataPath + RootPath + module + "/data"))
             Directory.CreateDirectory(Application.dataPath + RootPath + module + "/data");
+            */
 
         //2.read files
         string sourcePath = Application.dataPath + "/3rdLibs/GYLibs/Editor/CreateModule/";
@@ -91,7 +96,8 @@ public class CreateModuleEditor : EditorWindow
         }
 
         //4.write files
-        StreamWriter writer = new StreamWriter(Application.dataPath + RootPath + module + "/" + module + "Module.cs");
+        var tmpPath = Application.dataPath + RootPath + module + "/" + module + "Module.cs";
+        StreamWriter writer = new StreamWriter(tmpPath);
         writer.Write(moduleContent);
         writer.Flush();
         writer.Close();

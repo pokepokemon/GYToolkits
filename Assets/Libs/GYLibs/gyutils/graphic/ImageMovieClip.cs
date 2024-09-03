@@ -1,4 +1,4 @@
-﻿using GYLib.Utils;
+using GYLib.Utils;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +17,7 @@ public class ImageMovieClip : MonoBehaviour
     /// 文件播放路径(目前暂时和数据源耦合)
     /// </summary>
     public string sheetPath;
-    
+
     /// <summary>
     /// 文件名的起始编码 Sheet/aaa_{0}.png 编码不需要从0开始,但是必须连续
     /// </summary>
@@ -57,6 +57,8 @@ public class ImageMovieClip : MonoBehaviour
     /// 仅在加速过快使用
     /// </summary>
     public bool canSkipFirstFrame = false;
+
+    public bool useUnityTime = false;
 
     private int _currentFrame = -1;
 
@@ -107,7 +109,7 @@ public class ImageMovieClip : MonoBehaviour
         if (CheckCanPlay())
         {
             _isPlaying = true;
-            _lastFrameTime = TimeUtil.shareTimeSincePlay;
+            _lastFrameTime = useUnityTime ? Time.time : TimeUtil.shareTimeSincePlay;
             _currentFrame = 0;
             RefreshImage();
         }
@@ -141,7 +143,7 @@ public class ImageMovieClip : MonoBehaviour
         {
             _isPlaying = true;
             CheckPathChange();
-            _lastFrameTime = TimeUtil.shareTimeSincePlay - _lastFrameTime;
+            _lastFrameTime = (useUnityTime ? Time.time : TimeUtil.shareTimeSincePlay) - _lastFrameTime;
         }
     }
 
@@ -152,7 +154,7 @@ public class ImageMovieClip : MonoBehaviour
         if (_isPlaying)
         {
             CheckPathChange();
-            float curTime = TimeUtil.shareTimeSincePlay;
+            float curTime = useUnityTime ? Time.time : TimeUtil.shareTimeSincePlay;
             if (curTime == 0)
             {
                 return;

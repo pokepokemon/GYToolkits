@@ -183,6 +183,23 @@ public class FileManager {
     }
 
     /// <summary>
+    /// 获取默认保存路径下所有的文件
+    /// </summary>
+    /// <param name="pattern"></param>
+    /// <returns></returns>
+    public FileInfo[] GetAllFile(string pattern = "*")
+    {
+        string path = _filePath;
+        DirectoryInfo directory = new DirectoryInfo(path);
+        FileInfo[] infos = directory.GetFiles(pattern);
+        if (infos != null)
+        {
+            return infos;
+        }
+        return null;
+    }
+
+    /// <summary>
     /// 反序列后储存
     /// </summary>
     /// <typeparam name="T"></typeparam>

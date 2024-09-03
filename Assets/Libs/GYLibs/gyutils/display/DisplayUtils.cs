@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
@@ -46,7 +46,23 @@ namespace GYLib.Utils
 				return transform.gameObject;
 			}
 		}
-        
+
+        /// <summary>
+        /// 设置层
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="layer"></param>
+        public static void SetLayer(GameObject root, int layer)
+        {
+            Transform rootTf = root.transform;
+            for (int i = 0; i < rootTf.childCount; i++)
+            {
+                Transform childTrans = rootTf.GetChild(i);
+                SetLayer(childTrans.gameObject, layer);
+            }
+            root.layer = layer;
+        }
+
         public static void SetButtonText(Button button, string content)
         {
             Text text = DisplayUtils.GetChildByName(button.gameObject, "Text").GetComponent<Text>();
@@ -168,7 +184,7 @@ namespace GYLib.Utils
         public static Vector2 GetUIPosFromModelPos(Canvas canvas, Transform modelTransform, Camera cam, float offsetX = 0, float offsetY = 0)
         {
             float scaleFactor = canvas.scaleFactor;
-            Vector2 screentPosition = cam.WorldToScreenPoint(modelTransform.position);
+            Vector2 screentPosition = cam.WorldToScreenPoint(modelTransform == null ? Vector3.zero : modelTransform.position);
             screentPosition.x = screentPosition.x - Screen.width / 2 + offsetX * scaleFactor;
             screentPosition.y = screentPosition.y - Screen.height / 2 + offsetY * scaleFactor;
 
@@ -194,6 +210,30 @@ namespace GYLib.Utils
 
             Vector2 convertPos = new Vector2(screentPosition.x / scaleFactor, screentPosition.y / scaleFactor);
             return convertPos;
+        }
+
+        public static Bounds TransformBounds(Transform _transform, Bounds _localBounds)
+        {
+            var center = _transform.TransformPoint(_localBounds.center);
+
+            // transform the local extents' axes
+            var extents = _localBounds.extents;
+            var axisX = _transform.TransformVector(extents.x, 0, 0);
+            var axisY = _transform.TransformVector(0, extents.y, 0);
+            var axisZ = _transform.TransformVector(0, 0, extents.z);
+
+            // sum their absolute value to get the world extents
+            extents.x = Mathf.Abs(axisX.x) + Mathf.Abs(axisY.x) + Mathf.Abs(axisZ.x);
+            extents.y = Mathf.Abs(axisX.y) + Mathf.Abs(axisY.y) + Mathf.Abs(axisZ.y);
+            extents.z = Mathf.Abs(axisX.z) + Mathf.Abs(axisY.z) + Mathf.Abs(axisZ.z);
+
+            return new Bounds { center = center, extents = extents };
+        }
+
+        public static void SetUIRectWH(RectTransform rect, float width, float height)
+        {
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
         }
     }
 }

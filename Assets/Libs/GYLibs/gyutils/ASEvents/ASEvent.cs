@@ -59,9 +59,5 @@
             return new ASEvent(m_type);
         }
 
-        public void ResetType(string type)
-        {
-            m_type = type;
-        }
     }
 }

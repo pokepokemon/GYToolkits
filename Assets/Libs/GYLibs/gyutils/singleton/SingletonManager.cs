@@ -15,7 +15,7 @@ namespace GYLib
     {
         private static SingletonManager _instance = null;
 
-        private static bool quitting;
+        public static bool quitting;
 
         /// <summary>
         ///  获取单例
@@ -96,9 +96,16 @@ namespace GYLib
                 instance = FindObjectOfType<T>();
                 if (instance == null)
                 {
-                    GameObject instanceGO = new GameObject(key);
-                    instanceGO.transform.parent = transform;
-                    instance = instanceGO.AddComponent<T>();
+                    if (transform != null && !quitting)
+                    {
+                        GameObject instanceGO = new GameObject(key);
+                        instanceGO.transform.parent = transform;
+                        instance = instanceGO.AddComponent<T>();
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
 
                 if(!_monoSingletons.ContainsKey(key))

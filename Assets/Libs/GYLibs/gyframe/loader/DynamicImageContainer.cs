@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using GYLib;
 
 /// <summary>
 /// 动态加载Image容器
@@ -12,6 +13,8 @@ public class DynamicImageContainer : MonoBehaviour
     /// 加载路径
     /// </summary>
     public string loadPath;
+
+    public string loadedPath;
 
     /// <summary>
     /// 需要加载的图片容器
@@ -29,6 +32,7 @@ public class DynamicImageContainer : MonoBehaviour
     public GameObject objLoading;
 
     public UnityAction<string, Sprite> onCompleted;
+    private Sprite spAsset;
 
     private bool _isLoading = false;
 
@@ -46,6 +50,10 @@ public class DynamicImageContainer : MonoBehaviour
     /// </summary>
     public void StartLoading()
     {
+        if (AlreadyLoadPath(loadPath))
+        {
+            return;
+        }
         StopLoading();
         if (!string.IsNullOrEmpty(loadPath) && !_isLoading)
         {
@@ -54,6 +62,7 @@ public class DynamicImageContainer : MonoBehaviour
             {
                 objLoading.SetActive(true);
             }
+            imageTarget.gameObject.SetActive(false);
             GameLoader.Instance.LoadSprite(loadPath, OnLoadCompleted);
         }
     }
@@ -68,8 +77,11 @@ public class DynamicImageContainer : MonoBehaviour
                 objLoading.SetActive(false);
             }
             Sprite sp = obj as Sprite;
+            spAsset = sp;
+            loadedPath = path;
             if (sp != null)
             {
+                imageTarget.gameObject.SetActive(true);
                 imageTarget.sprite = sp;
             }
 
@@ -77,6 +89,12 @@ public class DynamicImageContainer : MonoBehaviour
             {
                 onCompleted(path, sp);
             }
+        }
+        else
+        {
+            GameLoader.Instance.Unload(obj);
+            spAsset = null;
+            loadedPath = null;
         }
     }
 
@@ -88,10 +106,36 @@ public class DynamicImageContainer : MonoBehaviour
         if (_isLoading)
         {
             _isLoading = false;
+
+            if (spAsset != null)
+            {
+                GameLoader.Instance.Unload(spAsset);
+                spAsset = null;
+            }
             if (objLoading != null)
             {
                 objLoading.SetActive(false);
             }
+            loadedPath = null;
+        }
+    }
+
+
+    public bool AlreadyLoadPath(string path)
+    {
+        if (loadedPath == path && !_isLoading && spAsset != null)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public void Dispose()
+    {
+        if (spAsset != null)
+        {
+            GameLoader.Instance.Unload(spAsset);
+            spAsset = null;
         }
     }
 
@@ -101,6 +145,14 @@ public class DynamicImageContainer : MonoBehaviour
         {
             Image image = this.GetComponent<Image>();
             this.imageTarget = image;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (!SingletonManager.quitting)
+        {
+            Dispose();
         }
     }
 }

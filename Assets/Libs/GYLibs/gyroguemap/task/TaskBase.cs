@@ -19,6 +19,9 @@ public class TaskBase
     {
     }
 
+    /// <summary>
+    /// 在OnCompleted前调用
+    /// </summary>
     public virtual void End()
     {
         isRunning = false;

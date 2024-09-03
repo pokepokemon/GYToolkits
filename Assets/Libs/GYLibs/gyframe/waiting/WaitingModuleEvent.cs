@@ -61,5 +61,11 @@ namespace GYLib.GYFrame
                 }
             }
         }
+
+        public void ForceDispose()
+        {
+            ModuleEventManager.instance.ReceiveHandler -= ReceiveEvent;
+            GameObject.Destroy(_go);
+        }
     }
 }

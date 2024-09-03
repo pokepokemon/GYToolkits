@@ -7,9 +7,15 @@ namespace GYLib.GYFrame
 {
     public class ModuleEvent
     {
+        private string typeName = string.Empty;
+
         public override string ToString()
         {
-            return this.GetType().Name;
+            if (string.IsNullOrEmpty(typeName))
+            {
+                typeName = this.GetType().Name;
+            }
+            return typeName;
         }
     }
 }

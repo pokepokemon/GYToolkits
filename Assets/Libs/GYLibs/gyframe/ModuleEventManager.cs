@@ -18,6 +18,7 @@ namespace GYLib.GYFrame
         }
 
         internal WaitingDelegate ReceiveHandler;
+        public ModuleDelegate OutsideHandler;
 
         /**
          * 添加事件
@@ -45,7 +46,6 @@ namespace GYLib.GYFrame
         public void removeEvent(Type argClass, ModuleDelegate func)
         {
             Type key = argClass;
-            
             if (_dict.ContainsKey(key))
             {
                 _dict.Remove(key);
@@ -70,10 +70,8 @@ namespace GYLib.GYFrame
             {
                 //Debug.Log("no one care about " + evtName.ToString());
             }
-            if (ReceiveHandler != null)
-            {
-                ReceiveHandler.Invoke(evt);
-            }
+            ReceiveHandler?.Invoke(evt);
+            OutsideHandler?.Invoke(evt);
         }
 
         private void delegateFunc(ModuleEvent evt)

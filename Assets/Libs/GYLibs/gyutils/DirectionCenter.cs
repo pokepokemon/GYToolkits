@@ -126,4 +126,16 @@ public class DirectionCenter
     {
         return _crossDirSet.Contains(dir);
     }
+
+    /// <summary>
+    /// 获取随机圆环上的点
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <returns></returns>
+    public Vector2 GetRandomCircleRange(float min, float max)
+    {
+        Vector2 rndCircle = Random.insideUnitCircle;
+        return rndCircle.normalized * (Random.value * (max - min) + min);
+    }
 }

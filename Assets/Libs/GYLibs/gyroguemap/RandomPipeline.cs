@@ -8,35 +8,41 @@ using System;
 /// </summary>
 public class RandomPipeline
 {
+    private int _seedRange = 100000;
     private int _RANDOM_COUNT = 100;
-    private int _nextSeed;
+    public int nextSeed { private set; get; }
     private Queue<double> _queue;
     private System.Random _random;
+
+    private int _curCount;
     
     public RandomPipeline(int seed)
     {
         _queue = new Queue<double>();
-        _nextSeed = seed;
-        _random = new System.Random(seed);
+        nextSeed = seed;
     }
 
     public void ResetSeed(int seed)
     {
-        _nextSeed = seed;
-        _random = new System.Random(_nextSeed);
+        nextSeed = seed;
         _queue.Clear();
     }
+
 
     public double Next()
     {
         if (_queue.Count <= 0)
         {
+            _random = new System.Random(nextSeed);
             for (int i = 0; i < _RANDOM_COUNT; i++)
             {
                 _queue.Enqueue(_random.NextDouble());
             }
         }
-        return _queue.Dequeue();
+
+        var result = _queue.Dequeue();
+        nextSeed = Convert.ToInt32(Math.Ceiling(result * _seedRange));
+        return result;
     }
 
     /// <summary>

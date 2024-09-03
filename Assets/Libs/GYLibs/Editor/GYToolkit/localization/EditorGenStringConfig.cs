@@ -1,4 +1,4 @@
-﻿using LitJson;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +12,17 @@ using UnityEngine.UI;
 public class EditorGenStringConfig : Editor {
     private const string _STRING_CONFIG_PATH = "Assets/Resources/config/localization.json.txt";
     private static Dictionary<string, string> _local2EnMap;
+    private static List<string> ignoreCSharpList = new List<string>() {
+        "/Editor/",
+        "Assets/SkillEditor/",
+        "Assets/SPUM/",
+        "Assets/3rdLibs",
+    };
+    private static List<string> ignoreJsonList = new List<string>() {
+        "localization.json",
+        "global.json",
+        "localization_",
+    };
 
     [MenuItem("Assets/GYTools/打印选中中文字符串")]
     public static void GenerateChineseConfig()
@@ -22,6 +33,7 @@ public class EditorGenStringConfig : Editor {
         ParseJsonEntry(mainMap);
         LoadLocalConfig();
         PrintStringConfig(mainMap);
+        Debug.Log("打印完成");
     }
 
     /// <summary>
@@ -43,7 +55,16 @@ public class EditorGenStringConfig : Editor {
             for (int i = 0; i < strArr.Length; i++)
             {
                 strArr[i] = strArr[i].Replace("\\", "/");
-                if (strArr[i].IndexOf("/Editor/") != -1 || strArr[i].IndexOf("Assets/Library") != -1)
+                bool needSkip = false;
+                foreach (var ignoreWord in ignoreCSharpList)
+                {
+                    if (strArr[i].Contains(ignoreWord))
+                    {
+                        needSkip = true;
+                        break;
+                    }
+                }
+                if (needSkip)
                 {
                     continue;
                 }
@@ -76,7 +97,16 @@ public class EditorGenStringConfig : Editor {
             string[] strArr = Directory.GetFiles(fullPath, "*.json.txt", SearchOption.AllDirectories);
             for (int i = 0; i < strArr.Length; i++)
             {
-                if (strArr[i].Contains("localization.json") || strArr[i].Contains("global.json"))
+                bool needSkip = false;
+                foreach (var ignoreWord in ignoreJsonList)
+                {
+                    if (strArr[i].Contains(ignoreWord))
+                    {
+                        needSkip = true;
+                        break;
+                    }
+                }
+                if (needSkip)
                 {
                     continue;
                 }
@@ -146,7 +176,7 @@ public class EditorGenStringConfig : Editor {
         TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(_STRING_CONFIG_PATH);
         if (textAsset != null)
         {
-            localConfigs = JsonMapper.ToObject<List<LocalizationConfigData>>(textAsset.text);
+            localConfigs = JsonConvert.DeserializeObject<List<LocalizationConfigData>>(textAsset.text);
         }
         else
         {
@@ -170,7 +200,7 @@ public class EditorGenStringConfig : Editor {
         foreach (var key in resultSet)
         {
             tmpStr = key.Replace("\n", "\\n");
-            tmpStr = key.Replace("\r\n", "\\r\\n");
+            tmpStr = tmpStr.Replace("\r", "\\r");
             bool containChinese = false; ;
             for (int i = 0; i < tmpStr.Length; i++)
             {

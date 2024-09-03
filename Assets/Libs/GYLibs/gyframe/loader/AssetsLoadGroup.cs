@@ -34,7 +34,7 @@ public class AssetsLoadGroup
         for (int i = 0; i < _pathList.Count; i++)
         {
             string path = _pathList[i];
-            System.Type type = _typeList == null ? null : _typeList[i];
+            System.Type type = _typeList == null ? null : (_typeList.Count > i ? _typeList[i] : null);
             if (!_loadingSet.Contains(path))
             {
                 GameLoader.Instance.LoadObject(path, type, HandleLoadOne);

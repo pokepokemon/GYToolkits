@@ -10,6 +10,8 @@ using System.Threading;
 /// </summary>
 public class MazeThreadTaskManager
 {
+    public delegate void HandleErrorCall(string reason);
+
     public static readonly MazeThreadTaskManager Instance = new MazeThreadTaskManager();
     private Thread _thread = null;
 
@@ -17,8 +19,10 @@ public class MazeThreadTaskManager
 
     private List<TaskBase> _completedBuffer = new List<TaskBase>();
 
-    private bool unsupport = false;
+    public bool unsupport = false;
     private string _exceptionStr = "";
+
+    public HandleErrorCall OnErrorCall;
 
     public void Add(TaskBase task)
     {
@@ -32,8 +36,37 @@ public class MazeThreadTaskManager
     // Update is called once per frame
     public void Update()
     {
-        UpdateForCompletedCall();
-        UpdateForTraceError();
+        if (!unsupport)
+        {
+            UpdateForCompletedCall();
+            UpdateForTraceError();
+        }
+        else
+        {
+            //只调用一次
+            if (OnErrorCall != null)
+            {
+                OnErrorCall.Invoke(_exceptionStr);
+                OnErrorCall = null;
+                UnityEngine.Debug.Log("exception : " + _exceptionStr);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 调加错误调用回调
+    /// </summary>
+    /// <param name="callback"></param>
+    public void AddErrorCallback(HandleErrorCall callback)
+    {
+        if (OnErrorCall == null)
+        {
+            OnErrorCall = callback;
+        }
+        else
+        {
+            OnErrorCall += callback;
+        }
     }
     
     public void CheckStartThread()
@@ -61,18 +94,26 @@ public class MazeThreadTaskManager
     {
         while (true)
         {
+            bool needStop = false;
             try
             {
                 UpdateForRunTask();
+                Thread.Sleep(400);
             }
             catch (Exception e)
             {
-                _exceptionStr = e.ToString();
-                unsupport = true;
+                if (!(e is System.Threading.ThreadAbortException))
+                {
+                    _exceptionStr = e.ToString();
+                    unsupport = true;
+                }
+                needStop = true;
+            }
+            if (needStop)
+            {
                 Stop();
                 return;
             }
-            Thread.Sleep(400);
         }
     }
 
@@ -82,11 +123,17 @@ public class MazeThreadTaskManager
         {
             if (!_thread.Join(500))//等待0.5秒
             {
+                try
+                {
 #if UNITY_IPHONE
-				_thread.Abort();
+				    _thread.Abort();
 #else
-                _thread.Abort();
+                    _thread.Abort();
 #endif
+                }
+                catch (Exception e)
+                {
+                }
                 _thread = null;
             }
         }

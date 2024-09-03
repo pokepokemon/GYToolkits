@@ -46,18 +46,18 @@ public class ImageResizeTextList : MonoBehaviour
                 RectTransform rect = textList[i].rectTransform;
                 if (isHorizon)
                 {
-                    contentX += rect.sizeDelta.x;
-                    if (contentY < rect.sizeDelta.y)
+                    contentX += rect.rect.width;
+                    if (contentY < rect.rect.height)
                     {
-                        contentY = rect.sizeDelta.y;
+                        contentY = rect.rect.height;
                     }
                 }
                 else
                 {
-                    contentY += rect.sizeDelta.y;
-                    if (contentX < rect.sizeDelta.x)
+                    contentY += rect.rect.height;
+                    if (contentX < rect.rect.width)
                     {
-                        contentX = rect.sizeDelta.x;
+                        contentX = rect.rect.width;
                     }
                 }
             }

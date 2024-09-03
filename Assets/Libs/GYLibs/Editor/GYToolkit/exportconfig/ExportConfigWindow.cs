@@ -3,16 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using static ExportConfigWindow;
 
 public class ExportConfigWindow : EditorWindow
 {
     private Vector2 _scrollPos;
     public ToggleFileName[] pathList;
+    public ToggleFileName[] _allPathList;
 
     private bool _toggleOpen;
+
+    private string _filterName;
+
     private string _rootPath;
     private string _excelPath;
     private string _excelExecutePath = "excel.exe";
@@ -62,7 +68,8 @@ public class ExportConfigWindow : EditorWindow
             configPath = configPath.Replace("/", "\\");
         }
 
-        this.SetXlsxList(configPath, path, _tmpCacheList.ToArray());
+        _allPathList = _tmpCacheList.ToArray();
+        this.SetXlsxList(configPath, path, GetXlsxListWithFilter(_tmpCacheList));
     }
 
     private string GetExcelPath()
@@ -84,6 +91,24 @@ public class ExportConfigWindow : EditorWindow
         pathList = path;
     }
 
+
+    /// <summary>
+    /// 过滤关键字
+    /// </summary>
+    /// <param name="names"></param>
+    /// <returns></returns>
+    private ToggleFileName[] GetXlsxListWithFilter(List<ToggleFileName> names)
+    {
+        if (!string.IsNullOrEmpty(_filterName))
+        {
+            return names.Where(x => x.fileName.Contains(_filterName)).ToArray();
+        }
+        else
+        {
+            return names.ToArray();
+        }
+    }
+
     private void OnGUI()
     {
         GUILayout.BeginVertical();
@@ -93,7 +118,7 @@ public class ExportConfigWindow : EditorWindow
             EditorUtility.DisplayProgressBar("Waiting", "Waiting for export", 0.5f);
             try
             {
-                ExportAll();
+                ExportConfigEditorUtils.ExportAll(_rootPath);
             } catch (Exception e)
             { }
             EditorUtility.ClearProgressBar();
@@ -140,6 +165,13 @@ public class ExportConfigWindow : EditorWindow
             EditorUtility.ClearProgressBar();
         }
         GUILayout.Space(10);
+
+        string oldFilterName = _filterName;
+        _filterName = GUILayout.TextField(_filterName);
+        if (_filterName != oldFilterName)
+        {
+            RefreshSource();
+        }
         GUILayout.EndVertical();
     }
 
@@ -166,7 +198,8 @@ public class ExportConfigWindow : EditorWindow
                 EditorUtility.DisplayProgressBar("Waiting", "Waiting for export", 0.5f);
                 try
                 {
-                    ExportOneItem(toggle.fileName);
+                    ExportConfigEditorUtils.ExportOneItem(_rootPath, toggle.fileName);
+                    ExportConfigEditorUtils.PostCheckGenMultiConfig(GetToggleFileNames(_allPathList), toggle.fileName);
                 }
                 catch (Exception e)
                 { }
@@ -181,6 +214,16 @@ public class ExportConfigWindow : EditorWindow
         }
 
         GUILayout.EndVertical();
+    }
+
+    private string[] GetToggleFileNames(ToggleFileName[] toggles)
+    {
+        string[] fileNames = new string[toggles.Length];
+        for (int i = 0; i < fileNames.Length; i++)
+        {
+            fileNames[i] = toggles[i].fileName.Remove(toggles[i].fileName.LastIndexOf("."));
+        }
+        return fileNames;
     }
     
     private void ExportAll()
@@ -220,93 +263,34 @@ public class ExportConfigWindow : EditorWindow
             process.Dispose();
             process = null;
         }
+
+        ExportConfigEditorUtils.PostCheckGenMultiConfig(GetToggleFileNames(_allPathList));
         AssetDatabase.Refresh();
     }
     
     private void ExportSelected()
     {
         int counter = 0;
+        string singlePath = null;
         foreach (var item in pathList)
         {
             if (item.toggle)
             {
-                ExportOneItem(item.fileName);
+                ExportConfigEditorUtils.ExportOneItem(_rootPath, item.fileName);
+                singlePath = item.fileName;
                 counter++;
             }
         }
+
+        if (counter == 1)
+        {
+            ExportConfigEditorUtils.PostCheckGenMultiConfig(GetToggleFileNames(_allPathList), singlePath);
+        }
+        else
+        {
+            ExportConfigEditorUtils.PostCheckGenMultiConfig(GetToggleFileNames(_allPathList));
+        }
         AssetDatabase.Refresh();
-    }
-
-    private void ExportOneItem(string fileName)
-    {
-        string srcExcelFile = Application.platform == RuntimePlatform.OSXEditor ? (_rootPath + "excel/" + fileName) : (_rootPath + "excel\\" + fileName);
-        FileManager.CheckAndCreateDoc(srcExcelFile);
-
-        string tarExcelFile = _rootPath + Path.GetFileNameWithoutExtension(fileName) + ".xlsx";
-        File.Copy(srcExcelFile, tarExcelFile, true);
-
-        string tarJsonFile = Application.dataPath + "/Resources/config/" + Path.GetFileNameWithoutExtension(fileName);
-        if (Application.platform == RuntimePlatform.OSXEditor)
-        {
-            tarJsonFile = tarJsonFile.Replace("\\", "/");
-        }
-        else
-        {
-            tarJsonFile = tarJsonFile.Replace("/", "\\");
-        }
-
-        Process process = new Process();
-
-        // redirect the output stream of the child process.
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.CreateNoWindow = true;
-
-        if (Application.platform == RuntimePlatform.OSXEditor)
-        {
-            process.StartInfo.FileName = _rootPath + "/tools/excel2json.exe";
-            process.StartInfo.WorkingDirectory = _rootPath + "/tools/";
-        }
-        else
-        {
-            process.StartInfo.FileName = _rootPath + "\\tools\\excel2json.exe";
-            process.StartInfo.WorkingDirectory = _rootPath + "\\tools\\";
-        }
-        process.StartInfo.Arguments = "--excel " + tarExcelFile +
-            " --json " + tarJsonFile + ".json.txt --header 3 -a";
-
-        string output = "";
-        int exitCode = -1;
-        try
-        {
-            process.Start();
-
-            // do not wait for the child process to exit before
-            // reading to the end of its redirected stream.
-            // process.WaitForExit();
-
-            // read the output stream first and then wait.
-            StreamReader reader = new StreamReader(process.StandardOutput.BaseStream, Encoding.GetEncoding("gb2312"));
-            output = reader.ReadToEnd();
-            UnityEngine.Debug.Log(output);
-            process.WaitForExit();
-        }
-        catch (Exception e)
-        {
-            UnityEngine.Debug.LogError("Run error" + e.ToString()); // or throw new Exception
-        }
-        finally
-        {
-            exitCode = process.ExitCode;
-
-            process.Dispose();
-            process = null;
-        }
-
-        if (File.Exists(tarExcelFile))
-        {
-            File.Delete(tarExcelFile);
-        }
     }
 
     private void SelectAll()

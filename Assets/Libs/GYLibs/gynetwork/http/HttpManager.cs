@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -6,18 +6,18 @@ using System.Net;
 using System.Threading;
 using System.IO;
 using System.Text;
-using LitJson;
 using System.Linq;
 using System.Net.Sockets;
 using GYLib;
 using UnityEngine.Events;
+using Newtonsoft.Json.Linq;
 
 namespace GYHttp
 {
     public delegate void OnHttpReqCallBack(MemoryStream memoryStream);
     public delegate void OnUrlErrorCallBack(HttpStatusCode errcode, string error);
 
-    public class HttpManager : Singleton<HttpManager>
+    public class HttpManager : Singleton<HttpManager> 
     {
         public const int DEFAULT_TIME_OUT = 3000;
         public bool _isRunning = false;
@@ -27,7 +27,7 @@ namespace GYHttp
         private List<RequestInfo> _requestInfoList = new List<RequestInfo>();
         private List<RequestInfo> _requestInfoRemoveList = new List<RequestInfo>();
 
-        private JsonData _errReport = null;
+        private string _errReport = null;
 
         //多线程调用
         void LoopHttpReqForThread()
@@ -178,14 +178,12 @@ namespace GYHttp
             info.postData = data;
             info.startDownloadTime = Time.realtimeSinceStartup;
 
-            //因为明文把敏感信息放到header不是很好，并且谷歌爸爸会不给过审核
-            //所以把需要用到的通用header信息放成一个json结构后用base64处理一下再放到一个header中
-            LitJson.JsonData headerJson = new LitJson.JsonData();
+            JObject headerJson = new JObject();
             headerJson["device_id"] = SystemInfo.deviceUniqueIdentifier;
             headerJson["device_name"] = SystemInfo.deviceName;
             headerJson["device_model"] = SystemInfo.deviceModel;
             headerJson["bundle_id"] = Application.identifier;
-            headers.Add("CSUM", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(headerJson.ToJson())));
+            headers.Add("CSUM", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(headerJson.ToString())));
             info.headers = headers;
             lock (_requestInfoList)
             {

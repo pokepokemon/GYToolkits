@@ -96,6 +96,8 @@ public class SimpleParseCSharp {
                         tmpResult = sb.ToString();
                         if (!_strSet.Contains(tmpResult))
                         {
+                            tmpResult = tmpResult.Replace("\\n", "\n");
+                            tmpResult = tmpResult.Replace("\\r", "\r");
                             _strSet.Add(tmpResult);
                         }
                         sb = new StringBuilder();
