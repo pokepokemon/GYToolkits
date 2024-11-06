@@ -35,14 +35,13 @@ public class ExportConfigWindow : EditorWindow
     private List<ToggleFileName> _tmpCacheList = new List<ToggleFileName>();
     public void RefreshSource()
     {
-        string path = Application.dataPath;
-        path = path.Replace("\\", "/");
-        path = path.Remove(path.LastIndexOf("/") + 1);
-        string configPath = path + "Config/";
-        path += "Config/excel/";
+        (string, string) pathPair = GetConfigBatchPathAndExcelPath();
+        string excelPath = pathPair.Item1;
+        string configRootPath = pathPair.Item2;
 
-        string[] strArr = Directory.GetFiles(path, "*.xlsx", SearchOption.AllDirectories);
+        // init toggle items
         _tmpCacheList.Clear();
+        string[] strArr = Directory.GetFiles(excelPath, "*.xlsx", SearchOption.AllDirectories);
         for (int i = 0; i < strArr.Length; i++)
         {
             string strName = strArr[i].Substring(strArr[i].LastIndexOf("/") + 1);
@@ -57,19 +56,26 @@ public class ExportConfigWindow : EditorWindow
         }
 
         //format
-        if (Application.platform == RuntimePlatform.OSXEditor)
-        {
-            path = path.Replace("\\", "/");
-            configPath = configPath.Replace("\\", "/");
-        }
-        else
-        {
-            path = path.Replace("/", "\\");
-            configPath = configPath.Replace("/", "\\");
-        }
+        ExportConfigEditorUtils.FormatSystemPath(ref excelPath);
+        ExportConfigEditorUtils.FormatSystemPath(ref configRootPath);
 
         _allPathList = _tmpCacheList.ToArray();
-        this.SetXlsxList(configPath, path, GetXlsxListWithFilter(_tmpCacheList));
+        this.SetXlsxList(configRootPath, excelPath, GetXlsxListWithFilter(_tmpCacheList));
+    }
+
+    /// <summary>
+    /// 获取配置文件夹
+    /// </summary>
+    /// <returns></returns>
+    public (string, string) GetConfigBatchPathAndExcelPath()
+    {
+        string path = Application.dataPath;
+        path = path.Replace("\\", "/");
+        path = path.Remove(path.LastIndexOf("/") + 1);
+        string configPath = path + "Config/";
+        path += "Config/excel/";
+
+        return (path, configPath);
     }
 
     private string GetExcelPath()
@@ -119,6 +125,7 @@ public class ExportConfigWindow : EditorWindow
             try
             {
                 ExportConfigEditorUtils.ExportAll(_rootPath);
+                AssetDatabase.Refresh();
             } catch (Exception e)
             { }
             EditorUtility.ClearProgressBar();

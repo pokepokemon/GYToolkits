@@ -3,16 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 
 public class ExportConfigEditorUtils
 {
-
     /// <summary>
     /// 导出单个配置
     /// </summary>
@@ -86,7 +82,7 @@ public class ExportConfigEditorUtils
         }
     }
 
-    private static void FormatSystemPath(ref string path)
+    public static void FormatSystemPath(ref string path)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
@@ -139,7 +135,6 @@ public class ExportConfigEditorUtils
             process.Dispose();
             process = null;
         }
-        AssetDatabase.Refresh();
     }
 
     public static void PostCheckGenMultiConfig(string[] jsonPaths, string singlePath = null)
