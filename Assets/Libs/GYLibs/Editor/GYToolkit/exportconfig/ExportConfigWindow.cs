@@ -44,8 +44,11 @@ public class ExportConfigWindow : EditorWindow
         string[] strArr = Directory.GetFiles(excelPath, "*.xlsx", SearchOption.AllDirectories);
         for (int i = 0; i < strArr.Length; i++)
         {
-            string strName = strArr[i].Substring(strArr[i].LastIndexOf("/") + 1);
-            if (!strName.StartsWith("~"))
+            string tmpStr = strArr[i];
+            ExportConfigEditorUtils.FormatSystemPath(ref tmpStr);
+            string strName = tmpStr.Substring(excelPath.Length);
+            string fileName = tmpStr.Substring(tmpStr.LastIndexOf("\\") + 1);
+            if (!fileName.StartsWith("~"))
             {
                 _tmpCacheList.Add(new ToggleFileName()
                 {
