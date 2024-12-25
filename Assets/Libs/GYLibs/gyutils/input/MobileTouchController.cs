@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 namespace GYLibs.control
 {
@@ -102,11 +103,14 @@ namespace GYLibs.control
             }
             else if (touch.phase == TouchPhase.Began)
             {
-                _touchIdMap[touchId] = touch;
+                if (!IsTouchUIByTouch(touch))
+                {
+                    _touchIdMap[touchId] = touch;
+                }
             }
             else if (touch.phase == TouchPhase.Moved)
             {
-                if (_touchIdMap.TryGetValue(touchId, out Touch touchedData))
+                if (_touchIdMap.TryGetValue(touchId, out Touch touchedData) && !IsTouchUIByTouch(touch))
                 {
                     Vector2 deltaPos = touch.position - touchedData.position;
                     Vector2 deltaPosScaled = new Vector2(deltaPos.x / Screen.width, deltaPos.y / Screen.height);
@@ -121,6 +125,16 @@ namespace GYLibs.control
         public void Stop()
         {
             _touchIdMap.Clear();
+        }
+
+        private bool IsTouchUIByTouch(Touch touch)
+        {
+            int id = touch.fingerId;
+            if (EventSystem.current.IsPointerOverGameObject(id))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

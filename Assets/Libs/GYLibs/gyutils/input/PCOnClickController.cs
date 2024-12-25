@@ -1,17 +1,24 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 namespace GYLibs.control
 {
     public class PCOnClickController : IInputController
     {
-
         private const float CLICK_INTERVAL = 0.05f;
 
-        public UnityAction<Vector2, int> _onClick;
+        private UnityAction<Vector2, int> _onClick;
         public UnityAction<Vector2, int> OnClick {
             get => _onClick;
             set => _onClick = value; 
+        }
+
+        private UnityAction<Vector2, int> _onDown;
+        public UnityAction<Vector2, int> OnDown
+        {
+            get => _onDown;
+            set => _onDown = value;
         }
 
         private bool _isLeftMouseDown = false;
@@ -63,10 +70,11 @@ namespace GYLibs.control
             else
             {
                 // 按键按下
-                if (isButtonDown)
+                if (isButtonDown && !IsTouchUI())
                 {
                     isMouseDown = true;
                     mouseDownPosition = Input.mousePosition;
+                    _onDown?.Invoke(mouseDownPosition, clickArg);
                 }
             }
         }
@@ -77,5 +85,9 @@ namespace GYLibs.control
             _isRightMouseDown = false;
         }
 
+        private bool IsTouchUI()
+        {
+            return EventSystem.current.IsPointerOverGameObject();
+        }
     }
 }
