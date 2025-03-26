@@ -14,10 +14,15 @@ namespace GYLib.Utils
         private float _lastTime = 0;
 		private bool _isStart = false;
 
+        /// <summary>
+        /// 自定义帧调用器
+        /// </summary>
+        protected EnterFrame _targetFrame;
+
         public void Start()
         {
 			if (!_isStart) {
-				EnterFrame.instance.add (this);
+				(_targetFrame ?? EnterFrame.instance).add (this);
 				_lastTime = useRealTime ? Time.realtimeSinceStartup : Time.time; 
 				_isStart = true;
 			}
@@ -51,7 +56,7 @@ namespace GYLib.Utils
         {
 			if (_isStart) {
 				_isStart = false;
-				EnterFrame.instance.remove (this);
+				(_targetFrame ?? EnterFrame.instance).remove (this);
 			}
         }
 

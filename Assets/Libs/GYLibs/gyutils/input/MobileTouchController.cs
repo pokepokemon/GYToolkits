@@ -13,13 +13,20 @@ namespace GYLibs.control
         private List<Touch> _touchNotifyBuffer = new List<Touch>();
         private const float CLICK_INTERVAL = 0.05f;
 
-        private UnityAction<Vector2, int> _onTouch;
         public bool isSingleTouch = true;
+        private UnityAction<Vector2, int> _onTouch;
 
         public UnityAction<Vector2, int> OnClick
         {
             get => _onTouch;
             set => _onTouch = value;
+        }
+
+        private UnityAction<Vector2, int> _onDown;
+        public UnityAction<Vector2, int> OnDown
+        {
+            get => _onDown;
+            set => _onDown = value;
         }
 
         public void Update()
@@ -106,6 +113,7 @@ namespace GYLibs.control
                 if (!IsTouchUIByTouch(touch))
                 {
                     _touchIdMap[touchId] = touch;
+                    _onDown?.Invoke(touch.position, 0);
                 }
             }
             else if (touch.phase == TouchPhase.Moved)

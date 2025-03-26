@@ -6,6 +6,7 @@ using System.IO;
 using System;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 /// <summary>
 /// 文件操作管理
@@ -92,6 +93,7 @@ public class FileManager {
             string targetName = fileName + ".tmp";
             string fullPath = GetPath(fileName);
             string fullTargetPath = GetPath(targetName);
+            CheckFolder(fullPath);
             FileStream fs = GetFileCover(targetName);
             fs.Write(bytes, 0, bytes.Length);
             fs.Close();
@@ -106,7 +108,7 @@ public class FileManager {
     /// 检查存在文件夹
     /// </summary>
     /// <param name="fileName"></param>
-    private void checkFolder(string fileName)
+    private void CheckFolder(string fileName)
     {
         string folder = fileName.Substring(0, fileName.LastIndexOf("/") + 1);
         CreateFolder(folder);
@@ -120,7 +122,7 @@ public class FileManager {
     public FileStream GetFile(string fileName)
     {
         string fullPath = _filePath + _prefix + fileName;
-        checkFolder(fileName);
+        CheckFolder(fileName);
         return File.Open(fullPath, FileMode.OpenOrCreate);
     }
     
@@ -133,7 +135,7 @@ public class FileManager {
     public FileStream GetFileCover(string fileName)
     {
         string fullPath = GetPath(fileName);
-        checkFolder(fileName);
+        CheckFolder(fileName);
         if (File.Exists(fullPath))
         {
             File.Delete(fullPath);
@@ -146,34 +148,76 @@ public class FileManager {
     /// </summary>
     /// <param name="fileName"></param>
     /// <returns></returns>
-    public string GetFileString(string fileName)
+    public string GetFileString(string fileName, byte[] appendBuffer = null)
     {
         try
         {
             string fullPath = GetPath(fileName);
+
+            // 检查文件是否存在
             if (File.Exists(fullPath))
             {
-                using (StreamReader sr = new StreamReader(fullPath))
+                // 如果没有附加缓冲区需求，直接完整读取文件
+                if (appendBuffer == null)
                 {
-                    return sr.ReadToEnd();
+                    return File.ReadAllText(fullPath);
+                }
+
+                long fileLength = new FileInfo(fullPath).Length;
+
+                // 检查附加缓冲区大小是否有效
+                if (appendBuffer.Length > fileLength)
+                {
+                    throw new ArgumentException("File length error!");
+                }
+
+                // 计算文件的主内容长度（总长度 - 附加缓冲区长度）
+                long mainContentLength = fileLength - appendBuffer.Length;
+
+                using (FileStream fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read))
+                {
+                    // 读取文件的主内容部分为字符串
+                    using (StreamReader sr = new StreamReader(fs, System.Text.Encoding.UTF8, true, 4096))
+                    {
+                        char[] mainContentChars = new char[mainContentLength];
+                        sr.ReadBlock(mainContentChars, 0, (int)mainContentLength);
+                        string mainContent = new string(mainContentChars);
+
+                        // 读取附加缓冲区部分
+                        fs.Seek(mainContentLength, SeekOrigin.Begin);
+                        fs.Read(appendBuffer, 0, appendBuffer.Length);
+
+                        return mainContent;
+                    }
                 }
             }
         }
         catch (Exception e)
         {
-            return string.Empty;
+            Console.WriteLine($"读取文件失败: {e.Message}");
         }
+
         return string.Empty;
     }
 
-    public void SaveString(string filePath, string content)
+    public void SaveString(string filePath, string content, byte[] appendBytes = null)
     {
         try
         {
             string fullPath = GetPath(filePath);
-            using (StreamWriter sw = new StreamWriter(fullPath))
+            // 检查是否存在目录,没有则创建
+            CheckAndCreateDoc(fullPath);
+
+            byte[] preBytes = UTF8Encoding.UTF8.GetBytes(content);
+            // 打开文件句柄（覆盖写入模式）
+            using (FileStream fs = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
             {
-                sw.Write(content);
+                fs.Write(preBytes);
+                // 如果有附加字节数据，追加到文件末尾
+                if (appendBytes != null && appendBytes.Length > 0)
+                {
+                    fs.Write(appendBytes);
+                }
             }
         }
         catch (Exception e)

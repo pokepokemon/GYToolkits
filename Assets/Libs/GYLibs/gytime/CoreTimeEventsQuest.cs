@@ -7,7 +7,7 @@ using UnityEngine.Events;
 /// <summary>
 /// 规定加载函数并逐步完成的任务
 /// </summary>
-namespace IslandCore.interact
+namespace Game.interact
 {
     /// <summary>
     /// 单步逐函数执行基类

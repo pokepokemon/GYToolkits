@@ -158,10 +158,7 @@ namespace GYLib
                 for (int i = 0; i < length; i++)
                 {
                     object obj = list.Dequeue();
-                    if (obj is GameObject)
-                        GameObject.Destroy(obj as GameObject);
-                    if (obj is MonoBehaviour)
-                        GameObject.Destroy((obj as MonoBehaviour).gameObject);
+                    destoryObject(obj);
                 }
                 _objectDict.Remove(key);
             }
@@ -190,6 +187,7 @@ namespace GYLib
         /// <param name="obj"></param>
         private void destoryObject(object obj)
         {
+            Debug.Log("ObjectPool destroyObj");
             if (obj is GameObject)
                 GameObject.Destroy(obj as GameObject);
             if (obj is Component)

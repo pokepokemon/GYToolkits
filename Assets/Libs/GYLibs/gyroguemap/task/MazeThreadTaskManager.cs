@@ -76,8 +76,6 @@ public class MazeThreadTaskManager
             _thread = new Thread(new ThreadStart(LoopDoTask));
             _thread.IsBackground = true;
             _thread.Start();
-
-            UnityEngine.Debug.Log("new thread = " + _taskList.Count);
         }
     }
 
@@ -86,7 +84,6 @@ public class MazeThreadTaskManager
         if (_thread != null && _taskList.Count == 0)
         {
             Stop();
-            UnityEngine.Debug.Log("stop = " + _taskList.Count);
         }
     }
 

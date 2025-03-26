@@ -1,3 +1,4 @@
+using GYLibs.gyutils.random;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,12 +8,14 @@ public class RandomUtils
     static Dictionary<int, int> _seedDict = new Dictionary<int, int>();
     static List<int> _list = new List<int>();
     static int counter = 0;
+    static MersenneTwister _twister;
 
     public static void SetSeed(int seed, int pool = 0)
     {
         counter = 0;
         _list.Clear();
         _seedDict[pool] = seed;
+        _twister = _twister ?? new MersenneTwister((uint)seed);
         if (pool == 0)
         {
             UnityEngine.Random.InitState(seed);
@@ -27,7 +30,7 @@ public class RandomUtils
     public static void RandomSeed(int pool)
     {
         int tmpSeed = _seedDict[pool];
-        _seedDict[pool] = (((tmpSeed * 214013 + 2531011) >> 16) & 0x7fff) % 100000;
+        _seedDict[pool] = _twister.Next(0, 100000);// (((tmpSeed * 214013 + 2531011) >> 16) & 0x7fff) % 100000;
         counter++;
     }
 
@@ -63,6 +66,37 @@ public class RandomUtils
         }
         
         return count;*/
+    }
+
+    public static float Range(float min, float max, int pool = 0)
+    {
+        int tmpSeed = _seedDict[pool];
+        UnityEngine.Random.InitState(tmpSeed);
+        RandomSeed(pool);
+        return UnityEngine.Random.Range(min, max);
+    }
+
+    /// <summary>
+    ///  Return a random int within [minInclusive..maxExclusive)
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <param name="pool"></param>
+    /// <returns></returns>
+    public static int RangeInt(int min, int max, int pool = 0)
+    {
+        int tmpSeed = _seedDict[pool];
+        UnityEngine.Random.InitState(tmpSeed);
+        RandomSeed(pool);
+        return UnityEngine.Random.Range(min, max);
+    }
+
+    public static Vector2 RangePointInCircle(int pool = 0)
+    {
+        int tmpSeed = _seedDict[pool];
+        UnityEngine.Random.InitState(tmpSeed);
+        RandomSeed(pool);
+        return UnityEngine.Random.insideUnitCircle;
     }
 
     /// <summary>
@@ -124,7 +158,7 @@ public class RandomUtils
             totalWeight += randomProbArr[i];
         }
 
-        float resultWeight = totalWeight * UnityEngine.Random.value;
+        float resultWeight = totalWeight * RandomUtils.Range(0, 1);
         float curWeight = 0;
         int rndWordIndex = randomItemArr.Length - 1;
         for (int i = 0; i < randomItemArr.Length; i++)

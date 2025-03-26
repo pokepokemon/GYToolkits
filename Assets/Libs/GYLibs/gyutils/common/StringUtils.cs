@@ -12,6 +12,10 @@ public class StringUtils
     /// ,
     /// </summary>
     public static char[] splitKey2 = new char[] { ',' };
+    /// <summary>
+    /// :
+    /// </summary>
+    public static char[] splitKey3 = new char[] { ':' };
 
     /// <summary>
     /// 用指定key分割字符串
@@ -72,6 +76,24 @@ public class StringUtils
                     arr[discardFirst ? i - 1 : i] = Convert.ToSingle(strArr[i]);
                 }
                 return arr;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 解析2D坐标，例如"123,32"
+    /// </summary>
+    /// <param name="arguments"></param>
+    /// <returns></returns>
+    public static Vector2? ParseVector2(string arguments)
+    {
+        if (!string.IsNullOrEmpty(arguments))
+        {
+            string[] strArr = arguments.Split(splitKey2, StringSplitOptions.RemoveEmptyEntries);
+            if (strArr.Length >= 2)
+            {
+                return new Vector2(Convert.ToSingle(strArr[0]), Convert.ToSingle(strArr[1]));
             }
         }
         return null;

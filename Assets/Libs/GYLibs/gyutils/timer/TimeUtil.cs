@@ -174,8 +174,7 @@ namespace GYLib.Utils
         public static DateTime GetDateBySec2019(long sec)
         {
             DateTime date2019 = new DateTime(2019, 1, 1, 0, 0, 0, 0);
-            date2019.AddSeconds(sec);
-            return date2019;
+            return date2019.AddSeconds(sec);
         }
 
         /// <summary>

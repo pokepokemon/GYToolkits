@@ -10,6 +10,7 @@ public class UIProcessor : Processor
     private static Dictionary<string, PanelBinder> _openEvtMap = new Dictionary<string, PanelBinder>();
     private static Dictionary<string, PanelBinder> _closeEvtMap = new Dictionary<string, PanelBinder>();
     public static List<ModuleEvent> closeEvtList = new List<ModuleEvent>();
+    public static string evtNameSpace = string.Empty;
 
     /// <summary>
     /// 加载界面的GO结束后触发

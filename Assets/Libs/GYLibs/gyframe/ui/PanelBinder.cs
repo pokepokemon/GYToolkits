@@ -23,9 +23,16 @@ public class PanelBinder
     public bool needMask = true;
 
     /// <summary>
+    /// 只允许一个
+    /// </summary>
+    public bool isSingleton = true;
+
+    /// <summary>
     /// 业务层需要特殊处理时加入的配置
     /// </summary>
     public object specialData;
+
+    public static UnityAction<string, UnityAction<UnityEngine.Object, string>> overrideLoadFunc = null;
 
     public UnityAction<PanelBinder, ModuleEvent> onLoadedCall;
     public UnityAction<PanelBinder, ModuleEvent> onCloseCall;
@@ -39,6 +46,11 @@ public class PanelBinder
     private ModuleEvent _closeEvt;
     public void LoadPanel(ModuleEvent evt)
     {
+        if (isSingleton && (panelGo != null || _isLoading))
+        {
+            Debug.LogWarning("singleton panel already opened evt: " + evt.ToString());
+            return;
+        }
         _openEvt = evt;
         if (!_isLoading)
         {
@@ -51,7 +63,14 @@ public class PanelBinder
             {
                 _loadingMaskId = -1;
             }
-            GameLoader.Instance.LoadObject(path, OnLoadPrefab);
+            if (overrideLoadFunc == null)
+            {
+                GameLoader.Instance.LoadObject(path, OnLoadPrefab);
+            }
+            else
+            {
+                overrideLoadFunc.Invoke(path, OnLoadPrefab);
+            }
         }
     }
 

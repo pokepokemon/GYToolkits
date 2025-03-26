@@ -32,7 +32,9 @@ public class DynamicPrefabContainer : MonoBehaviour
     /// 加载完毕实例化对象
     /// </summary>
     private GameObject _objInstance;
-    private Object _asset;
+    private GameObject _asset;
+    private AsyncInstantiateOperation<GameObject> _oprAync;
+    private Coroutine _coroutineInitGO;
 
     public UnityAction<GameObject> onCompleted;
 
@@ -43,6 +45,11 @@ public class DynamicPrefabContainer : MonoBehaviour
     
     [ShowInInspector, ReadOnly]
     private bool _usePool = false;
+
+    public bool deactiveWhenLoaded;
+
+    public bool destoryAfterLoaded = false;
+
     private const string _POOL_KEY_PREFIX = "DPC_";
 
     // Use this for initialization
@@ -51,6 +58,14 @@ public class DynamicPrefabContainer : MonoBehaviour
         if (loadWhenStart)
         {
             StartLoading();
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (_asset != null && _isLoading && _objInstance == null)
+        {
+            TryCreateInstance();
         }
     }
 
@@ -86,25 +101,75 @@ public class DynamicPrefabContainer : MonoBehaviour
     {
         if (this != null && this.gameObject != null && _objInstance == null && _isLoading && path == loadPath)
         {
-            _isLoading = false;
-            if (objLoading != null)
-            {
-                objLoading.SetActive(false);
-            }
-            _asset = obj;
-            if (obj != null)
-            {
-                GameObject go = GameObject.Instantiate<GameObject>(obj as GameObject);
-                SetInstanceGo(go);
-            }
-            else
-            {
-                Debug.LogError("fail to load : [" + path + "]");
-            }
+            _asset = obj as GameObject;
+            TryCreateInstance();
         }
         else
         {
             GameLoader.Instance.Unload(obj);
+        }
+    }
+
+    /// <summary>
+    /// 异步创建实例
+    /// </summary>
+    private void TryCreateInstance()
+    {
+        if (!this.gameObject.activeInHierarchy || !gameObject.activeSelf)
+        {
+            return;
+        }
+        if (_asset != null)
+        {
+            _coroutineInitGO = StartCoroutine(LoadPrefabCoroutine(loadPath));
+        }
+        else
+        {
+            SetLoadingFlagStop();
+            Debug.LogError("fail to load : [" + loadPath + "]");
+        }
+    }
+
+    /// <summary>
+    /// 协程异步初始化
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    private IEnumerator LoadPrefabCoroutine(string path)
+    {
+        if (this != null && this.gameObject != null && _objInstance == null && _isLoading && path == loadPath && _asset != null)
+        {
+            SetLoadingFlagStop();
+            _oprAync = GameObject.InstantiateAsync<GameObject>(_asset as GameObject);
+            yield return _oprAync;
+            if (_oprAync.isDone && _oprAync.Result != null && _oprAync.Result.Length > 0)
+            {
+                if (_asset != null)
+                {
+                    SetInstanceGo(_oprAync.Result[0]);
+                }
+                else
+                {
+                    if (_oprAync.Result[0] != null)
+                    {
+                        GameObject.DestroyImmediate(_oprAync.Result[0], true);
+                    }
+                }
+            }
+            _coroutineInitGO = null;
+            _oprAync = null;
+        }
+    }
+
+    /// <summary>
+    /// 设置停止标志位
+    /// </summary>
+    private void SetLoadingFlagStop()
+    {
+        _isLoading = false;
+        if (objLoading != null)
+        {
+            objLoading.SetActive(false);
         }
     }
 
@@ -114,10 +179,25 @@ public class DynamicPrefabContainer : MonoBehaviour
     /// <param name="go"></param>
     private void SetInstanceGo(GameObject go)
     {
-        go.transform.SetParent(this.transform, false);
         _objInstance = go;
-        onCompleted?.Invoke(go);
-        OnLoadLocalize?.Invoke(go);
+        go.name = loadPath;
+        if (deactiveWhenLoaded)
+        {
+            _objInstance.SetActive(false);
+        }
+        if (!destoryAfterLoaded)
+        {
+            _objInstance.transform.SetParent(this.transform, false);
+        }
+        onCompleted?.Invoke(_objInstance);
+        OnLoadLocalize?.Invoke(_objInstance);
+
+        if (destoryAfterLoaded)
+        {
+            _objInstance = null;
+            Dispose();
+            GameObject.Destroy(this.gameObject);
+        }
     }
 
     /// <summary>
@@ -149,6 +229,15 @@ public class DynamicPrefabContainer : MonoBehaviour
             if (objLoading != null)
             {
                 objLoading.SetActive(false);
+            }
+            if (_coroutineInitGO != null)
+            {
+                StopCoroutine(_coroutineInitGO);
+                _coroutineInitGO = null;
+            }
+            if (_oprAync != null)
+            {
+                _oprAync.Cancel();
             }
         }
     }

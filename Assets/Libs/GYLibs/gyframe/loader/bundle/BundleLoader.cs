@@ -1,18 +1,15 @@
-using UnityEngine;
-using System.Collections;
-using GYLib;
-using System.Collections.Generic;
-using UnityEngine.Events;
+﻿using GYLib;
 using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
 
-/// <summary>
-/// 异步ResourceLoad加载器
-/// </summary>
-public class ResourcesLoader : MonoSingleton<ResourcesLoader>
+public class BundleLoader : MonoSingleton<BundleLoader>
 {
-    private List<ResourceLoadTask> _reqList = new List<ResourceLoadTask>();
 
-    private List<ResourceLoadTask> _reqBuffer = new List<ResourceLoadTask>();
+    private List<BundleLoadTask> _reqList = new List<BundleLoadTask>();
+
+    private List<BundleLoadTask> _reqBuffer = new List<BundleLoadTask>();
 
     private const int MAX_BUFFER_COUNT = 3;
 
@@ -33,7 +30,7 @@ public class ResourcesLoader : MonoSingleton<ResourcesLoader>
         }
         else
         {
-            ResourceLoadTask task = new ResourceLoadTask();
+            BundleLoadTask task = new BundleLoadTask();
             task.path = path;
             task.AddCallback(loadCallback);
             _reqList.Add(task);
@@ -53,7 +50,7 @@ public class ResourcesLoader : MonoSingleton<ResourcesLoader>
         }
         else
         {
-            ResourceLoadTask task = new ResourceLoadTask();
+            BundleLoadTask task = new BundleLoadTask();
             task.path = path;
             task.AddCallback(loadCallback);
             task.type = type;
@@ -109,16 +106,33 @@ public class ResourcesLoader : MonoSingleton<ResourcesLoader>
     {
         for (int i = 0; i < _reqBuffer.Count; i++)
         {
-            ResourceLoadTask task = _reqBuffer[i];
+            BundleLoadTask task = _reqBuffer[i];
+            
             if (task.req == null)
             {
-                if (task.type == null)
+                if (BundleResHub.Instance.TryGetBundle(task.path, out AssetBundle assetbundle, out string resFullName))
                 {
-                    task.req = Resources.LoadAsync<UnityEngine.Object>(task.path);
+                    if (task.type == null)
+                    {
+                        Debug.Log("assetbundle : " + string.Join("|", assetbundle.GetAllAssetNames()));
+                        Debug.Log("load bundle : " + resFullName);
+                        task.req = assetbundle.LoadAssetAsync<UnityEngine.Object>(resFullName);
+                    }
+                    else
+                    {
+                        task.req = assetbundle.LoadAssetAsync(resFullName, task.type);
+                    }
                 }
                 else
                 {
-                    task.req = Resources.LoadAsync(task.path, task.type);
+                    if (task.type == null)
+                    {
+                        task.req = Resources.LoadAsync<UnityEngine.Object>(task.path);
+                    }
+                    else
+                    {
+                        task.req = Resources.LoadAsync(task.path, task.type);
+                    }
                 }
             }
         }
@@ -132,7 +146,7 @@ public class ResourcesLoader : MonoSingleton<ResourcesLoader>
         float startTime = Time.realtimeSinceStartup;
         for (int i = 0; i < _reqBuffer.Count; i++)
         {
-            ResourceLoadTask task = _reqBuffer[i];
+            BundleLoadTask task = _reqBuffer[i];
             if (task.req.isDone)
             {
                 while (Time.realtimeSinceStartup - startTime < LOAD_FRAME_TIME && !task.GetIsCompleted())
@@ -147,13 +161,13 @@ public class ResourcesLoader : MonoSingleton<ResourcesLoader>
         }
     }
 
-    private List<ResourceLoadTask> _removeList = new List<ResourceLoadTask>();
+    private List<BundleLoadTask> _removeList = new List<BundleLoadTask>();
     /// <summary>
     /// 检查加载任务完成
     /// </summary>
     void UpdateForTaskRemove()
     {
-        foreach (ResourceLoadTask task in _reqBuffer)
+        foreach (BundleLoadTask task in _reqBuffer)
         {
             if (task.GetIsCompleted())
             {
@@ -202,7 +216,7 @@ public class ResourcesLoader : MonoSingleton<ResourcesLoader>
         int reqIndex = _reqList.FindIndex((x) => x.path == path && x.type == null);
         if (reqIndex != -1)
         {
-            ResourceLoadTask task = _reqList[reqIndex];
+            BundleLoadTask task = _reqList[reqIndex];
             task.RemoveCallback(loadCallback);
             if (task.IsCallbackEmpty() && !_reqBuffer.Contains(task))
             {
@@ -213,11 +227,25 @@ public class ResourcesLoader : MonoSingleton<ResourcesLoader>
 
     public UnityEngine.Object LoadObjectSync(string path)
     {
-        return Resources.Load<UnityEngine.Object>(path);
+        if (BundleResHub.Instance.TryGetBundle(path, out AssetBundle assetbundle, out string resFullName))
+        {
+            return assetbundle.LoadAsset<UnityEngine.Object>(resFullName);
+        }
+        else
+        {
+            return Resources.Load<UnityEngine.Object>(path);
+        }
     }
 
     public UnityEngine.Sprite LoadSpriteSync(string path)
     {
-        return Resources.Load<UnityEngine.Sprite>(path);
+        if (BundleResHub.Instance.TryGetBundle(path, out AssetBundle assetbundle, out string resFullName))
+        {
+            return assetbundle.LoadAsset<UnityEngine.Sprite>(resFullName);
+        }
+        else
+        {
+            return Resources.Load<UnityEngine.Sprite>(path);
+        }
     }
 }

@@ -8,7 +8,8 @@ public class UISortingContainer : UIContainer
 {
     public UISortingTree sortingTree { private set; get; }
 
-    public UISortingContainer(GameObject world, GameObject menu, GameObject popUp, GameObject loading, UISortingTree sort) : base(world, menu, popUp, loading)
+    public UISortingContainer(GameObject world, GameObject menu, GameObject popUp, GameObject loading, GameObject cursor,
+        UISortingTree sort) : base(world, menu, popUp, loading, cursor)
     {
         sortingTree = sort;
     }

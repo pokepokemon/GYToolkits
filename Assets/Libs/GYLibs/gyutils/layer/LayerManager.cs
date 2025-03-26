@@ -33,6 +33,7 @@ namespace GYLib.Utils {
                 DisplayUtils.GetChildByName(__uiContainer, "Menu"), 
                 DisplayUtils.GetChildByName(__uiContainer, "PopUp"),
                 DisplayUtils.GetChildByName(__uiContainer, "Loading"),
+                DisplayUtils.GetChildByName(__uiContainer, "Cursor"),
                 __uiContainer.GetComponent<UISortingTree>());
             tmpContainer.canvas = __uiContainer.GetComponent<Canvas>();
             _uiContainer = tmpContainer;

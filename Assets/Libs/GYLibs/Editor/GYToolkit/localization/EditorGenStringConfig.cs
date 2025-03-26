@@ -5,14 +5,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Unity.Entities.UniversalDelegates;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class EditorGenStringConfig : Editor {
     private const string _STRING_CONFIG_PATH = "Assets/Resources/config/localization.json.txt";
     private static Dictionary<string, string> _local2EnMap;
-    private static List<string> ignoreCSharpList = new List<string>() {
+    private static List<string> ignoreFolderList = new List<string>() {
         "/Editor/",
         "Assets/SkillEditor/",
         "Assets/SPUM/",
@@ -56,7 +58,7 @@ public class EditorGenStringConfig : Editor {
             {
                 strArr[i] = strArr[i].Replace("\\", "/");
                 bool needSkip = false;
-                foreach (var ignoreWord in ignoreCSharpList)
+                foreach (var ignoreWord in ignoreFolderList)
                 {
                     if (strArr[i].Contains(ignoreWord))
                     {
@@ -106,6 +108,14 @@ public class EditorGenStringConfig : Editor {
                         break;
                     }
                 }
+                foreach (var ignoreWord in ignoreFolderList)
+                {
+                    if (strArr[i].Contains(ignoreWord))
+                    {
+                        needSkip = true;
+                        break;
+                    }
+                }
                 if (needSkip)
                 {
                     continue;
@@ -145,21 +155,40 @@ public class EditorGenStringConfig : Editor {
                 {
                     continue;
                 }
-                string tmpStr = strArr[i].Replace(Application.dataPath, "Assets");
-                GameObject go = AssetDatabase.LoadAssetAtPath<GameObject>(tmpStr);
-                if (go != null)
+
+                bool needSkip = false;
+                foreach (var ignoreWord in ignoreFolderList)
                 {
-                    Text[] textArr = go.GetComponentsInChildren<Text>(true);
-                    if (textArr != null)
+                    if (strArr[i].Contains(ignoreWord))
                     {
-                        for (int j = 0; j < textArr.Length; j++)
-                        {
-                            string tmpKey = textArr[j].text;
-                            if (!string.IsNullOrEmpty(tmpKey) && !mainMap.Contains(tmpKey))
-                            {
-                                mainMap.Add(tmpKey);
-                            }
-                        }
+                        needSkip = true;
+                        break;
+                    }
+                }
+                if (needSkip)
+                {
+                    continue;
+                }
+                StartScanPrefab(strArr[i], mainMap);
+            }
+        }
+    }
+
+    private static void StartScanPrefab(string path, HashSet<string> mainMap)
+    {
+        string tmpStr = path.Replace(Application.dataPath, "Assets");
+        GameObject go = AssetDatabase.LoadAssetAtPath<GameObject>(tmpStr);
+        if (go != null)
+        {
+            Text[] textArr = go.GetComponentsInChildren<Text>(true);
+            if (textArr != null)
+            {
+                for (int j = 0; j < textArr.Length; j++)
+                {
+                    string tmpKey = textArr[j].text;
+                    if (!string.IsNullOrEmpty(tmpKey) && !mainMap.Contains(tmpKey))
+                    {
+                        mainMap.Add(tmpKey);
                     }
                 }
             }

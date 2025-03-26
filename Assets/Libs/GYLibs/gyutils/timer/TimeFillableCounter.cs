@@ -21,6 +21,10 @@ namespace GYLib.Utils
         private string _registerName;
         private bool _isRunning;
         private float _lastTime = 0;
+		/// <summary>
+		/// 自定义帧调用器
+		/// </summary>
+		private EnterFrame _targetFrame;
 
         /// <summary>
         /// 当掉帧导致Update调用次数不足时,是否要补足调用次数
@@ -34,13 +38,14 @@ namespace GYLib.Utils
         /// <param name="autoDispose">当达到间隔时自动调用dispose清除所有信息,调用时机为调用自定义间隔函数之后,默认为 false</param>
         /// <param name="func">到达间隔时自动调用的函数,默认 null</param>
         /// <param name="registerName">调用函数时应用的参数,默认 null</param>
-        public TimeFillabeleCounter(float interval = 1f, bool autoDispose = false, TimeCounterDelegate func = null, string registerName = "")
+        public TimeFillabeleCounter(float interval = 1f, bool autoDispose = false, TimeCounterDelegate func = null, string registerName = "", EnterFrame targetFrame = null)
         {
             _registerName = registerName;
             _autoRepeat = false;
             _repeatCounter = -1;
             this._interval = interval;
             _autoDispose = autoDispose;
+            _targetFrame = targetFrame;
             if (func != null)
             {
                 this.addListener(func);
@@ -51,7 +56,7 @@ namespace GYLib.Utils
         public void Start()
         {
             _isRunning = true;
-            EnterFrame.instance.add(this);
+            (_targetFrame ?? EnterFrame.instance).add(this);
             _lastTime = useRealTime ? Time.realtimeSinceStartup : Time.time;
         }
 
@@ -59,7 +64,7 @@ namespace GYLib.Utils
         public void Stop()
         {
             _isRunning = false;
-            EnterFrame.instance.remove(this);
+            (_targetFrame ?? EnterFrame.instance).remove(this);
         }
 
         /**  到达间隔时间时自动调用函数

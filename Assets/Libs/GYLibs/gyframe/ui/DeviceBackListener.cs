@@ -85,23 +85,7 @@ public class DeviceBackListener : MonoSingleton<DeviceBackListener>
                 else
                 {
                     Debug.Log("call quit");
-#if !UNITY_EDITOR
-                    //保存游戏资源
-                    if (SaveProcessor.IsInited)
-                    {
-                        ModuleEventManager.instance.dispatchEvent(new MEvent_GameSaveFlushImmediately());
-                        ModuleEventManager.instance.dispatchEvent(new MEvent_GameSaveImmediately());
-                    }
-
-                    CommonUI.ShowConfirm(
-                        LocalizationConfig.Instance.GetStringWithSelf("提示"),
-                        LocalizationConfig.Instance.GetStringWithSelf("离开游戏?"),
-                        true,
-                        delegate ()
-                        {
-                            Application.Quit();
-                        });
-#endif
+                    ComfirmQuit();
                     _lastDownTime = 0;
                     _isFirstPress = false;
                 }
@@ -144,4 +128,30 @@ public class DeviceBackListener : MonoSingleton<DeviceBackListener>
         return false;
     }
 
+    /// <summary>
+    /// 提示退出游戏
+    /// </summary>
+    public void ComfirmQuit()
+    {
+        //保存游戏资源
+        /*
+        if (SaveProcessor.IsInited)
+        {
+            ModuleEventManager.instance.dispatchEvent(new MEvent_GameSaveFlushImmediately());
+            ModuleEventManager.instance.dispatchEvent(new MEvent_GameSaveImmediately());
+        }
+        */
+        CommonUI.ShowConfirm(
+            LocalizationConfig.Instance.GetStringWithSelf("提示"),
+            LocalizationConfig.Instance.GetStringWithSelf("未保存的数据将会丢失,确认离开游戏?"),
+            true,
+            delegate ()
+            {
+#if !UNITY_EDITOR
+                Application.Quit();
+#else
+                UnityEditor.EditorApplication.isPlaying = false;
+#endif
+            });
+    }
 }

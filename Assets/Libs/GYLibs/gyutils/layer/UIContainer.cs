@@ -32,18 +32,21 @@ public class UIContainer
     private List<GameObject> _popUpList = new List<GameObject>();
     private List<GameObject> _menuList = new List<GameObject>();
     private List<GameObject> _loadingList = new List<GameObject>();
+    private List<GameObject> _cursorList = new List<GameObject>();
 
     public Transform popUpLayer;
     public Transform menuLayer;
     public Transform loadingLayer;
     public Transform worldLayer;
+    public Transform cursorLayer;
 
-    public UIContainer(GameObject world, GameObject menu, GameObject popUp, GameObject loading)
+    public UIContainer(GameObject world, GameObject menu, GameObject popUp, GameObject loading, GameObject cursor)
     {
         worldLayer = world.transform;
         popUpLayer = popUp.transform;
         menuLayer = menu.transform;
         loadingLayer = loading.transform;
+        cursorLayer = cursor.transform;
     }
 
     public virtual void AddPopUp(GameObject go)
@@ -129,6 +132,36 @@ public class UIContainer
         }
     }
 
+    public virtual void AddCursor(GameObject go)
+    {
+        if (_cursorList.Contains(go))
+        {
+            _cursorList.Remove(go);
+        }
+        _cursorList.Add(go);
+
+        if (go.GetComponent<DestroyCallback>() == null)
+        {
+            go.AddComponent<DestroyCallback>().callback += delegate ()
+            {
+                RemoveCursor(go);
+            };
+        }
+        go.transform.SetParent(cursorLayer, false);
+    }
+
+    public virtual void RemoveCursor(GameObject go, bool needDestroy = true)
+    {
+        if (_cursorList.Contains(go))
+        {
+            _cursorList.Remove(go);
+            if (needDestroy)
+            {
+                GameObject.Destroy(go);
+            }
+        }
+    }
+
     private List<UIModelBind> _blindList = new List<UIModelBind>();
     public virtual void AddWorld(GameObject go)
     {
@@ -202,5 +235,23 @@ public class UIContainer
     public GameObject GetWorldLayer()
     {
         return worldLayer.gameObject;
+    }
+
+    /// <summary>
+    /// 获取菜单层级的UI数量
+    /// </summary>
+    /// <returns></returns>
+    public int GetMenuCount()
+    {
+        return _menuList.Count;
+    }
+
+    /// <summary>
+    /// 获取弹出层级的UI数量
+    /// </summary>
+    /// <returns></returns>
+    public int GetPopUpCount()
+    {
+        return _popUpList.Count;
     }
 }

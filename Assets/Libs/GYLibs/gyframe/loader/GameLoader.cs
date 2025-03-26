@@ -27,7 +27,7 @@ public class GameLoader : MonoSingleton<GameLoader>
     /// <param name="callback">Object,string</param>
     public void LoadObject(string path, UnityAction<UnityEngine.Object, string> callback)
     {
-        ResourcesLoader.Instance.AddTask(path, callback);
+        BundleLoader.Instance.AddTask(path, callback);
     }
 
     /// <summary>
@@ -37,7 +37,7 @@ public class GameLoader : MonoSingleton<GameLoader>
     /// <param name="callback">Object,string</param>
     public void LoadObject(string path, Type type, UnityAction<UnityEngine.Object, string> callback)
     {
-        ResourcesLoader.Instance.AddTaskSetType(path, callback, type);
+        BundleLoader.Instance.AddTaskSetType(path, callback, type);
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public class GameLoader : MonoSingleton<GameLoader>
     /// <param name="callback">Object,string</param>
     public void LoadSprite(string path, UnityAction<UnityEngine.Object, string> callback)
     {
-        ResourcesLoader.Instance.AddTaskSetType(path, callback, typeof(Sprite));
+        BundleLoader.Instance.AddTaskSetType(path, callback, typeof(Sprite));
     }
 
     /// <summary>
@@ -57,12 +57,12 @@ public class GameLoader : MonoSingleton<GameLoader>
     /// <returns></returns>
     public UnityEngine.Object LoadObjectSync(string path)
     {
-        return Resources.Load<UnityEngine.Object>(path);
+        return BundleLoader.Instance.LoadObjectSync(path);
     }
 
     public UnityEngine.Sprite LoadSpriteSync(string path)
     {
-        return Resources.Load<UnityEngine.Sprite>(path);
+        return BundleLoader.Instance.LoadSpriteSync(path);
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ public class GameLoader : MonoSingleton<GameLoader>
     /// <returns></returns>
     public bool HasStartWithLoadingPath(string subStr, string ignoreStr = "")
     {
-        return ResourcesLoader.Instance.HasStartWithLoadingPath(subStr, ignoreStr);
+        return BundleLoader.Instance.HasStartWithLoadingPath(subStr, ignoreStr);
     }
 
     public void Unload(UnityEngine.Object asset)
@@ -170,9 +170,9 @@ public class GameLoader : MonoSingleton<GameLoader>
 
     public void Cancel(string path, Type type, UnityAction<UnityEngine.Object, string> callback)
     {
-        if (ResourcesLoader.Instance != null)
+        if (BundleLoader.Instance != null)
         {
-            ResourcesLoader.Instance.CancelCallback(path, type, callback);
+            BundleLoader.Instance.CancelCallback(path, type, callback);
         }
     }
 }
